@@ -6,3 +6,7 @@ node_modules
 test-ledger
 .yarn
 .surfpool
+
+# Gradle output of local Expo modules
+app/modules/*/android/build/
+app/modules/*/android/.cxx/
