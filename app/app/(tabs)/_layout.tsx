@@ -22,7 +22,6 @@ export default function TabsLayout() {
       </View>
     )
   }
-  if (!duress && vault.isSuccess && !vault.data) return <Redirect href="/setup" />
 
   return (
     <Tabs tabBar={(props) => <TabBar {...props} />} screenOptions={{ headerShown: false }}>

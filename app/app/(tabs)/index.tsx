@@ -1,6 +1,7 @@
 import { DecoyHome } from '@/components/decoy'
 import { useIsDuress, useSecurity } from '@/features/security/session'
 import { ScoreRing } from '@/components/score-ring'
+import { NoVaultHome } from '@/components/no-vault-home'
 import { useSafetyScore } from '@/features/vault/use-safety-score'
 import { Ionicons } from '@expo/vector-icons'
 import { useMobileWallet } from '@wallet-ui/react-native-kit'
@@ -34,7 +35,8 @@ function RealHome() {
   const safety = useSafetyScore()
 
   const v = vault.data
-  if (!v || !account) return null
+  if (!account) return null
+  if (!v) return <NoVaultHome />
 
   const savingsSol = lamportsToSol(v.available)
   const walletSol = lamportsToSol(wallet.data ?? 0n)
