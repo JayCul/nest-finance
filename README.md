@@ -38,7 +38,24 @@ programs/nest_vault/     Anchor program (Rust)
   src/errors.rs
   tests/vault.rs         LiteSVM tests, including the attacker-with-owner-key test
 scripts/wsl-run.sh       runs toolchain commands inside WSL
+app/                     Android app (Expo, React Native, @solana/kit, Mobile Wallet Adapter)
+  app/                   screens (expo-router)
+  features/vault/        data layer: queries, actions, sentinel key, withdrawal watcher
+  generated/nest-vault/  typed client generated from the IDL with Codama
 ```
+
+## Run the app
+
+The app needs a development build (Mobile Wallet Adapter uses native modules, so Expo Go won't work) and an MWA wallet on the device. On an emulator, use Solana Mobile's [mock-mwa-wallet](https://github.com/solana-mobile/mock-mwa-wallet); it needs a device PIN, and you press **Authenticate** in it before signing.
+
+```bash
+cd app
+npm install
+npm run generate:client   # after changing the program: regenerates generated/nest-vault from the IDL
+npx expo run:android
+```
+
+The app talks to devnet. `@solana/kit` is pinned to 7.1.1 to match `@wallet-ui/react-native-kit`, and `@codama/renderers-js` to 2.4.0, the last release whose output runs on Kit 7.
 
 ## Build and test
 
@@ -60,6 +77,7 @@ Program ID (devnet): `EGe3adgVvYu3He7jgbi3sKQTWrV1v9JBNxT7nGQjA4AZ`
 ## Status
 
 - [x] Phase 1: on-chain program and tests
+- [x] Program deployed to devnet
 - [ ] Phase 2: owner app (Android, Mobile Wallet Adapter)
 - [ ] Phase 3: duress PIN, decoy view, sentinel lockdown, SMS alerts
 - [ ] Phase 4: guardian mode
