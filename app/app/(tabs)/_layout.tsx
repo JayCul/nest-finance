@@ -4,23 +4,25 @@ import React from 'react'
 import { ActivityIndicator, View } from 'react-native'
 import { TabBar } from '@/components/tab-bar'
 import { colors } from '@/constants/theme'
+import { useIsDuress } from '@/features/security/session'
 import { useVault } from '@/features/vault/use-vault'
 import { useWithdrawalWatcher } from '@/features/vault/use-withdrawal-watcher'
 
 export default function TabsLayout() {
   const { account } = useMobileWallet()
   const vault = useVault()
-  useWithdrawalWatcher()
+  const duress = useIsDuress()
+  useWithdrawalWatcher(!duress)
 
   if (!account) return <Redirect href="/connect" />
-  if (vault.isLoading) {
+  if (!duress && vault.isLoading) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}>
         <ActivityIndicator color={colors.primary} />
       </View>
     )
   }
-  if (vault.isSuccess && !vault.data) return <Redirect href="/setup" />
+  if (!duress && vault.isSuccess && !vault.data) return <Redirect href="/setup" />
 
   return (
     <Tabs tabBar={(props) => <TabBar {...props} />} screenOptions={{ headerShown: false }}>

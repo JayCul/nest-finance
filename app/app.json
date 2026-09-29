@@ -39,7 +39,13 @@
         }
       ],
       "expo-web-browser",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Nest Finance shares your location with your emergency contact only when your backup PIN is used."
+        }
+      ]
     ],
     "experiments": {
       "reactCompiler": true,

@@ -11,7 +11,8 @@ import type { IconName } from '@/components/ui'
 const TAB_META: Record<string, { label: string; icon: IconName; iconActive: IconName }> = {
   index: { label: 'Home', icon: 'home-outline', iconActive: 'home' },
   activity: { label: 'Activity', icon: 'receipt-outline', iconActive: 'receipt' },
-  guardians: { label: 'Guardians', icon: 'people-outline', iconActive: 'people' },
+  // "People" in every mode: the tab label must not change when opened with the backup PIN.
+  guardians: { label: 'People', icon: 'people-outline', iconActive: 'people' },
   settings: { label: 'Settings', icon: 'settings-outline', iconActive: 'settings' },
 }
 

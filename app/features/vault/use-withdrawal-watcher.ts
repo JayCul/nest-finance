@@ -19,7 +19,7 @@ Notifications.setNotificationHandler({
  * request. That is what a drainer signature or a coerced request looks like from here.
  * Runs while the app is open; background delivery comes with guardian push in Phase 4.
  */
-export function useWithdrawalWatcher() {
+export function useWithdrawalWatcher(enabled = true) {
   const pending = usePendingWithdrawals()
   const seen = useRef<Set<string> | null>(null)
 
@@ -47,7 +47,8 @@ export function useWithdrawalWatcher() {
     for (const p of live) {
       if (seen.current.has(p.address)) continue
       seen.current.add(p.address)
-      if (isLocalWithdrawal(p.address)) continue
+      // No vault alerts while the duress view is showing.
+      if (!enabled || isLocalWithdrawal(p.address)) continue
       Notifications.scheduleNotificationAsync({
         content: {
           title: 'Withdrawal requested',
@@ -57,5 +58,5 @@ export function useWithdrawalWatcher() {
         trigger: { channelId: 'withdrawals' },
       }).catch(() => {})
     }
-  }, [pending.data])
+  }, [pending.data, enabled])
 }

@@ -1,3 +1,5 @@
+import { DecoyHome } from '@/components/decoy'
+import { useIsDuress, useSecurity } from '@/features/security/session'
 import { Ionicons } from '@expo/vector-icons'
 import { useMobileWallet } from '@wallet-ui/react-native-kit'
 import { router } from 'expo-router'
@@ -18,7 +20,7 @@ import {
 } from '@/features/vault/use-vault'
 import { formatCountdown, formatDuration, formatDurationShort, formatSol, lamportsToSol, shortAddress, usd } from '@/utils/format'
 
-export default function HomeScreen() {
+function RealHome() {
   const { account } = useMobileWallet()
   const vault = useVault()
   const pending = usePendingWithdrawals()
@@ -26,6 +28,7 @@ export default function HomeScreen() {
   const price = useSolPrice()
   const activity = useVaultActivity()
   const now = useChainNow()
+  const { pinsEnabled } = useSecurity()
 
   const v = vault.data
   if (!v || !account) return null
@@ -161,7 +164,20 @@ export default function HomeScreen() {
             valueColor={v.guardians.length ? undefined : colors.warning}
           />
           <InfoRow label="Safe addresses" value={String(v.safeList.length)} />
-          <InfoRow label="Duress protection" value="Coming soon" valueColor={colors.textSecondary} />
+          <InfoRow
+            label="Backup PIN"
+            value={pinsEnabled ? 'Enabled' : 'Not set up'}
+            valueColor={pinsEnabled ? undefined : colors.warning}
+          />
+          {pinsEnabled ? null : (
+            <PillButton
+              title="Set up backup PIN"
+              icon="finger-print-outline"
+              variant="outline"
+              style={{ flex: 0 }}
+              onPress={() => router.push('/security-setup')}
+            />
+          )}
         </Card>
 
         <SectionHeader title="Recent Activity" action="View All" onAction={() => router.push('/activity')} />
@@ -236,3 +252,8 @@ const styles = StyleSheet.create({
   divider: { height: 1, backgroundColor: colors.border },
   empty: { fontFamily: fonts.medium, fontSize: 13, color: colors.textSecondary, textAlign: 'center', paddingVertical: space.lg },
 })
+
+/** Duress mode shows the ordinary-wallet version of this tab. */
+export default function HomeScreen() {
+  return useIsDuress() ? <DecoyHome /> : <RealHome />
+}

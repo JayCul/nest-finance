@@ -1,3 +1,5 @@
+import { DecoyActivity } from '@/components/decoy'
+import { useIsDuress } from '@/features/security/session'
 import { router } from 'expo-router'
 import React from 'react'
 import { RefreshControl, ScrollView, StyleSheet, Text } from 'react-native'
@@ -8,7 +10,7 @@ import { activityRowProps } from '@/features/vault/activity-row'
 import { useChainNow, usePendingWithdrawals, useVaultActivity } from '@/features/vault/use-vault'
 import { formatCountdown, formatSol, shortAddress } from '@/utils/format'
 
-export default function ActivityScreen() {
+function RealActivity() {
   const activity = useVaultActivity()
   const pending = usePendingWithdrawals()
   const now = useChainNow()
@@ -69,3 +71,8 @@ const styles = StyleSheet.create({
   title: { fontFamily: fonts.display, fontSize: 24, color: colors.text, marginVertical: space.sm },
   empty: { fontFamily: fonts.medium, fontSize: 13, color: colors.textSecondary, textAlign: 'center', paddingVertical: space.lg },
 })
+
+/** Duress mode shows the ordinary-wallet version of this tab. */
+export default function ActivityScreen() {
+  return useIsDuress() ? <DecoyActivity /> : <RealActivity />
+}

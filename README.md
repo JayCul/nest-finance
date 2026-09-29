@@ -42,7 +42,19 @@ app/                     Android app (Expo, React Native, @solana/kit, Mobile Wa
   app/                   screens (expo-router)
   features/vault/        data layer: queries, actions, sentinel key, withdrawal watcher
   generated/nest-vault/  typed client generated from the IDL with Codama
+  features/security/     PINs, session lock, duress actions (lockdown + SMS)
+  modules/nest-sms/      local Expo module (Kotlin) that sends SMS with no UI
 ```
+
+## What the backup PIN does
+
+Both PINs open the same app through the same screen and take the same time. The backup PIN:
+
+1. Shows an ordinary wallet: the real spending wallet balance, real USDC and real transaction history. No savings, no guardians, identical navigation. Nothing shown is made up, so checking the address on an explorer matches.
+2. Signs a `lockdown` with the phone's sentinel key in the background. No wallet prompt appears. Every pending withdrawal is voided.
+3. Texts the emergency contact that the backup PIN was used, that savings are frozen, and the location when available. Location never triggers a system dialog in this path.
+
+Unlocking later with the real PIN shows what happened in Settings. Practice mode runs the same flow without freezing anything and marks the text as a drill.
 
 ## Run the app
 
@@ -78,8 +90,8 @@ Program ID (devnet): `EGe3adgVvYu3He7jgbi3sKQTWrV1v9JBNxT7nGQjA4AZ`
 
 - [x] Phase 1: on-chain program and tests
 - [x] Program deployed to devnet
-- [ ] Phase 2: owner app (Android, Mobile Wallet Adapter)
-- [ ] Phase 3: duress PIN, decoy view, sentinel lockdown, SMS alerts
+- [x] Phase 2: owner app (Android, Mobile Wallet Adapter)
+- [x] Phase 3: backup (duress) PIN, ordinary-wallet view, silent sentinel lockdown, SMS alert with location, practice mode
 - [ ] Phase 4: guardian mode
 - [ ] Phase 5: SKR guardian stipends, safety score
 - [ ] Phase 6: submission

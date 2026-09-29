@@ -8,6 +8,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { IconCircle, type IconName } from '@/components/ui'
 import { colors, fonts, radius, space } from '@/constants/theme'
+import { useIsDuress } from '@/features/security/session'
 import { shortAddress } from '@/utils/format'
 
 /** Bottom sheet behind the centre tab button: the same three actions in every mode. */
@@ -15,8 +16,9 @@ export default function MoveSheet() {
   const insets = useSafeAreaInsets()
   const { account } = useMobileWallet()
   const [copied, setCopied] = useState(false)
+  const duress = useIsDuress()
 
-  const go = (path: '/deposit' | '/withdraw') => {
+  const go = (path: '/deposit' | '/withdraw' | '/send') => {
     router.back()
     setTimeout(() => router.push(path), 50)
   }
@@ -38,8 +40,13 @@ export default function MoveSheet() {
       <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, space.lg) }]}>
         <View style={styles.grabber} />
         <Text style={styles.title}>Move money</Text>
-        <Option icon="arrow-down" title="Deposit" body="Move money into protected savings" onPress={() => go('/deposit')} />
-        <Option icon="arrow-up" title="Withdraw" body="Start a protected withdrawal" onPress={() => go('/withdraw')} />
+        {duress ? null : (
+          <>
+            <Option icon="arrow-down" title="Deposit" body="Move money into protected savings" onPress={() => go('/deposit')} />
+            <Option icon="arrow-up" title="Withdraw" body="Start a protected withdrawal" onPress={() => go('/withdraw')} />
+          </>
+        )}
+        <Option icon="paper-plane-outline" title="Send" body="Pay from your wallet" onPress={() => go('/send')} />
         <Option
           icon={copied ? 'checkmark' : 'qr-code-outline'}
           title={copied ? 'Address copied' : 'Receive'}

@@ -1,3 +1,5 @@
+import { DecoySettings } from '@/components/decoy'
+import { useIsDuress } from '@/features/security/session'
 import { Ionicons } from '@expo/vector-icons'
 import { useMobileWallet } from '@wallet-ui/react-native-kit'
 import * as Haptics from 'expo-haptics'
@@ -9,7 +11,11 @@ import { Card, IconCircle, type IconName, Notice, PillButton, Screen } from '@/c
 import { AppConfig } from '@/constants/app-config'
 import { colors, fonts, space } from '@/constants/theme'
 import { useChainNow, usePendingConfig, useVault, useVaultActions } from '@/features/vault/use-vault'
-import { formatCountdown, formatDuration, shortAddress } from '@/utils/format'
+import { formatCountdown, formatDuration, formatWhen, shortAddress } from '@/utils/format'
+import { useQuery } from '@tanstack/react-query'
+import { InfoRow } from '@/components/ui'
+import { readDuressLog } from '@/features/security/duress'
+import { useSecurity } from '@/features/security/session'
 
 function SettingRow({
   icon,
@@ -39,7 +45,7 @@ function SettingRow({
   )
 }
 
-export default function SettingsScreen() {
+function RealSettings() {
   const { account, disconnect } = useMobileWallet()
   const vault = useVault()
   const pendingConfig = usePendingConfig()
@@ -47,6 +53,9 @@ export default function SettingsScreen() {
   const { lockdown, applyConfig, cancelConfig } = useVaultActions()
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const { pinsEnabled, startDrill, lock } = useSecurity()
+  const duressLog = useQuery({ queryKey: ['duress-log'], queryFn: readDuressLog, refetchInterval: 15_000 })
+  const lastDuress = duressLog.data?.[0]
   const v = vault.data
   if (!v) return null
 
@@ -103,12 +112,57 @@ export default function SettingsScreen() {
         </Card>
       ) : null}
 
+      {lastDuress ? (
+        <Card>
+          <Text style={styles.cardTitle}>{lastDuress.drill ? 'Last practice run' : 'Backup PIN was used'}</Text>
+          <Text style={styles.body}>{formatWhen(Math.floor(lastDuress.at / 1000))}</Text>
+          <InfoRow
+            label="Savings freeze"
+            value={
+              lastDuress.drill ? 'Skipped (practice)' : lastDuress.lockdown === 'sent' ? 'Frozen by this phone' : 'Failed'
+            }
+            valueColor={lastDuress.lockdown === 'failed' ? colors.danger : undefined}
+          />
+          <InfoRow
+            label="Contacts alerted"
+            value={lastDuress.smsError ? 'Text failed' : String(lastDuress.smsSent)}
+            valueColor={lastDuress.smsError ? colors.danger : undefined}
+          />
+          <InfoRow label="Location shared" value={lastDuress.location ? 'Yes' : 'No'} />
+          {lastDuress.lockdownError || lastDuress.smsError ? (
+            <Notice tone="danger">{[lastDuress.lockdownError, lastDuress.smsError].filter(Boolean).join(' · ')}</Notice>
+          ) : null}
+        </Card>
+      ) : null}
+
       <Text style={styles.group}>Security</Text>
       <Card style={{ gap: 0, paddingVertical: space.sm }}>
         <SettingRow icon="time-outline" label="Withdrawal delay" value={formatDuration(v.delaySecs)} onPress={() => router.push('/settings-edit')} />
         <SettingRow icon="people-outline" label="Guardians" value={v.guardians.length ? `${v.guardians.length} connected` : 'None'} onPress={() => router.push('/settings-edit')} />
         <SettingRow icon="flash-outline" label="Safe addresses" value={String(v.safeList.length)} onPress={() => router.push('/settings-edit')} />
-        <SettingRow icon="finger-print-outline" label="Duress protection" value="Coming soon" />
+        <SettingRow
+          icon="finger-print-outline"
+          label="Backup PIN"
+          value={pinsEnabled ? 'On' : 'Set up'}
+          onPress={() => router.push('/security-setup')}
+        />
+        {pinsEnabled ? (
+          <SettingRow
+            icon="play-outline"
+            label="Practice backup PIN"
+            onPress={() =>
+              Alert.alert(
+                'Practice',
+                'The app will lock. Enter your backup PIN to see what opens. Nothing is frozen, and your emergency contact gets a text marked as practice.',
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  { text: 'Start', onPress: startDrill },
+                ],
+              )
+            }
+          />
+        ) : null}
+        {pinsEnabled ? <SettingRow icon="lock-closed-outline" label="Lock app" onPress={lock} /> : null}
         <SettingRow icon="snow-outline" label="Freeze lasts" value={formatDuration(v.lockdownSecs)} />
       </Card>
 
@@ -160,3 +214,8 @@ const styles = StyleSheet.create({
   settingLabel: { flex: 1, fontFamily: fonts.semibold, fontSize: 14, color: colors.text },
   settingValue: { fontFamily: fonts.medium, fontSize: 13, color: colors.textSecondary },
 })
+
+/** Duress mode shows the ordinary-wallet version of this tab. */
+export default function SettingsScreen() {
+  return useIsDuress() ? <DecoySettings /> : <RealSettings />
+}

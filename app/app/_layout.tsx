@@ -9,9 +9,11 @@ import { useFonts } from 'expo-font'
 import { Stack } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { StatusBar } from 'expo-status-bar'
-import { useEffect } from 'react'
+import { PropsWithChildren, useEffect } from 'react'
 import 'react-native-reanimated'
 import { AppProviders } from '@/components/app-providers'
+import { LockScreen } from '@/components/lock-screen'
+import { useSecurity } from '@/features/security/session'
 import { colors } from '@/constants/theme'
 
 SplashScreen.preventAutoHideAsync()
@@ -34,6 +36,7 @@ export default function RootLayout() {
 
   return (
     <AppProviders>
+      <SecurityGate>
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="connect" />
@@ -42,12 +45,23 @@ export default function RootLayout() {
         <Stack.Screen name="withdraw" />
         <Stack.Screen name="withdrawal/[address]" />
         <Stack.Screen name="settings-edit" />
+        <Stack.Screen name="security-setup" />
+        <Stack.Screen name="send" />
         <Stack.Screen
           name="move"
           options={{ presentation: 'transparentModal', animation: 'fade', contentStyle: { backgroundColor: 'transparent' } }}
         />
       </Stack>
+      </SecurityGate>
       <StatusBar style="dark" />
     </AppProviders>
   )
+}
+
+/** Shows the PIN screen while locked. Both PINs lead into the same navigation. */
+function SecurityGate({ children }: PropsWithChildren) {
+  const { mode } = useSecurity()
+  if (mode === 'loading') return null
+  if (mode === 'locked') return <LockScreen />
+  return <>{children}</>
 }

@@ -421,7 +421,7 @@ function bigintReplacer(_: string, v: unknown) {
 }
 
 /** System Program transfer, built by hand to avoid another dependency. */
-function transferSol(source: TransactionSigner, destination: Address, lamports: bigint): Instruction {
+export function transferSol(source: TransactionSigner, destination: Address, lamports: bigint): Instruction {
   const data = new Uint8Array(12)
   data.set(getU32Encoder().encode(2), 0)
   data.set(getU64Encoder().encode(lamports), 4)

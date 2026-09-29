@@ -1,3 +1,5 @@
+import { DecoyPeople } from '@/components/decoy'
+import { useIsDuress } from '@/features/security/session'
 import { router } from 'expo-router'
 import React from 'react'
 import { StyleSheet, Text, View } from 'react-native'
@@ -6,7 +8,7 @@ import { colors, fonts, space } from '@/constants/theme'
 import { useChainNow, useVault } from '@/features/vault/use-vault'
 import { formatWhen, shortAddress } from '@/utils/format'
 
-export default function GuardiansScreen() {
+function RealGuardians() {
   const vault = useVault()
   const now = useChainNow()
   const v = vault.data
@@ -63,3 +65,8 @@ const styles = StyleSheet.create({
   body: { fontFamily: fonts.medium, fontSize: 12.5, lineHeight: 18, color: colors.textSecondary, marginTop: 2 },
   fine: { fontFamily: fonts.medium, fontSize: 11.5, color: colors.textSecondary, textAlign: 'center' },
 })
+
+/** Duress mode shows the ordinary-wallet version of this tab. */
+export default function GuardiansScreen() {
+  return useIsDuress() ? <DecoyPeople /> : <RealGuardians />
+}
