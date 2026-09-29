@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { useMobileWallet } from '@wallet-ui/react-native-kit'
 import { Redirect } from 'expo-router'
 import React, { useState } from 'react'
-import { StyleSheet, Text, View } from 'react-native'
+import { Image, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { BalanceCard } from '@/components/balance-card'
 import { Notice, PillButton } from '@/components/ui'
@@ -25,9 +25,7 @@ export default function ConnectScreen() {
     <SafeAreaView style={styles.screen}>
       <View style={styles.content}>
         <View style={styles.brandRow}>
-          <View style={styles.logo}>
-            <Ionicons name="shield-checkmark" size={18} color={colors.textOnPrimary} />
-          </View>
+          <Image source={require('@/assets/images/logo-mark.png')} style={styles.logo} />
           <Text style={styles.brand}>Nest Finance</Text>
         </View>
 
@@ -80,14 +78,7 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background, justifyContent: 'space-between' },
   content: { padding: space.lg, gap: space.xl },
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: space.sm },
-  logo: {
-    width: 34,
-    height: 34,
-    borderRadius: 12,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  logo: { width: 38, height: 38, borderRadius: 11 },
   brand: { fontFamily: fonts.display, fontSize: 17, color: colors.text },
   heroTitle: { fontFamily: fonts.display, fontSize: 28, lineHeight: 36, color: colors.textOnPrimary, marginTop: 4 },
   point: { flexDirection: 'row', gap: space.md, alignItems: 'center' },

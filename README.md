@@ -103,7 +103,7 @@ Program ID (devnet): `EGe3adgVvYu3He7jgbi3sKQTWrV1v9JBNxT7nGQjA4AZ`
 - [x] Phase 2: owner app (Android, Mobile Wallet Adapter)
 - [x] Phase 3: backup (duress) PIN, ordinary-wallet view, silent sentinel lockdown, SMS alert with location, practice mode
 - [x] Phase 4: guardian mode (auto-discovery of vaults you protect, alerts, cancel, freeze, check-in, QR invites)
-- [ ] Phase 5: SKR guardian stipends, safety score
+- [x] Phase 5: SKR guardian rewards (on-chain stipend pool, 8-day accrual cap), safety score
 - [ ] Phase 6: submission
 
 ## Limits

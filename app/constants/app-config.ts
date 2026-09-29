@@ -1,7 +1,15 @@
 import { AppIdentity, createSolanaDevnet, SolanaCluster } from '@wallet-ui/react-native-kit'
 
 export class AppConfig {
-  static identity: AppIdentity = { name: 'Nest Finance', uri: 'https://github.com/JayCul/nest-finance' }
+  /**
+   * Wallets show `icon` resolved against `uri`. Until Nest Finance has its own site, the uri
+   * points at the repo's raw files so the icon loads from app/assets/images/icon.png.
+   */
+  static identity: AppIdentity = {
+    name: 'Nest Finance',
+    uri: 'https://raw.githubusercontent.com/JayCul/nest-finance/main/',
+    icon: 'app/assets/images/icon.png',
+  }
   static networks: SolanaCluster[] = [createSolanaDevnet({ url: 'https://api.devnet.solana.com' })]
   /** SOL kept in the app's sentinel key so it can pay for a silent lockdown. */
   static sentinelFundingLamports = 10_000_000n

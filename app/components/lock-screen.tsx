@@ -1,6 +1,5 @@
-import { Ionicons } from '@expo/vector-icons'
 import React, { useState } from 'react'
-import { StyleSheet, Text, View } from 'react-native'
+import { Image, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { PinPad } from '@/components/pin-pad'
 import { colors, fonts, space } from '@/constants/theme'
@@ -17,9 +16,7 @@ export function LockScreen() {
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.brand}>
-        <View style={styles.logo}>
-          <Ionicons name="shield-checkmark" size={20} color={colors.textOnPrimary} />
-        </View>
+        <Image source={require('@/assets/images/logo-mark.png')} style={styles.logo} />
         <Text style={styles.brandText}>Nest Finance</Text>
         {drill ? <Text style={styles.practice}>Practice</Text> : null}
       </View>
@@ -41,7 +38,7 @@ export function LockScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'space-between', paddingVertical: space.xl },
   brand: { alignItems: 'center', gap: 10, marginTop: space.xxl },
-  logo: { width: 48, height: 48, borderRadius: 16, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+  logo: { width: 64, height: 64, borderRadius: 18 },
   brandText: { fontFamily: fonts.display, fontSize: 18, color: colors.text },
   practice: {
     fontFamily: fonts.semibold,

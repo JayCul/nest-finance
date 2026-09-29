@@ -112,7 +112,11 @@ export default function GuardedVaultScreen() {
             <InfoRow label="Rewards" value={`${fmtSkr(toSkr(stipend.data.ratePerWeek))} SKR / week`} />
           ) : null}
           <PillButton
-            title={stipend.data && account ? `Check in & collect ${fmtSkr(toSkr(accruedFor(stipend.data, account.address, now)))} SKR` : 'Check in'}
+            title={
+              stipend.data && account && toSkr(accruedFor(stipend.data, account.address, now)) >= 0.01
+                ? `Check in & collect ${fmtSkr(toSkr(accruedFor(stipend.data, account.address, now)))} SKR`
+                : 'Check in'
+            }
             icon="checkmark-done-outline"
             variant="outline"
             loading={busy === 'checkin'}
