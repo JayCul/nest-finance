@@ -125,6 +125,13 @@ export default function SetupScreen() {
         style={{ flex: 0, minHeight: 56 }}
       />
       <Text style={styles.fine}>Your wallet will ask you to approve one transaction.</Text>
+      <PillButton
+        title="Here to protect someone? Open guardian view"
+        icon="people-outline"
+        variant="outline"
+        style={{ flex: 0 }}
+        onPress={() => router.push('/protect')}
+      />
     </Screen>
   )
 }

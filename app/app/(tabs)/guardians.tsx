@@ -6,11 +6,13 @@ import { StyleSheet, Text, View } from 'react-native'
 import { Card, IconCircle, ListRow, Notice, PillButton, Screen, SectionHeader } from '@/components/ui'
 import { colors, fonts, space } from '@/constants/theme'
 import { useChainNow, useVault } from '@/features/vault/use-vault'
+import { useGuardedVaults } from '@/features/guardian/use-guardian'
 import { formatWhen, shortAddress } from '@/utils/format'
 
 function RealGuardians() {
   const vault = useVault()
   const now = useChainNow()
+  const guarded = useGuardedVaults()
   const v = vault.data
 
   return (
@@ -54,6 +56,29 @@ function RealGuardians() {
         onPress={() => router.push('/settings-edit')}
       />
       <Text style={styles.fine}>Guardian changes take effect after your withdrawal delay.</Text>
+
+      <SectionHeader title="People you protect" />
+      {(guarded.data ?? []).map((g) => (
+        <ListRow
+          key={g.address}
+          icon={g.lockdownUntil > now ? 'snow-outline' : 'shield-checkmark-outline'}
+          iconColor={g.lockdownUntil > now ? '#A86A0B' : colors.primary}
+          iconBg={g.lockdownUntil > now ? colors.warningSoft : colors.primarySoft}
+          title={shortAddress(g.owner, 6)}
+          subtitle={g.lockdownUntil > now ? 'Frozen' : 'Protected'}
+          onPress={() => router.push({ pathname: '/guarded/[vault]', params: { vault: g.address } })}
+        />
+      ))}
+      {guarded.data && guarded.data.length === 0 ? (
+        <Text style={styles.fine}>Nobody has added you as a guardian yet.</Text>
+      ) : null}
+      <PillButton
+        title="My guardian code"
+        icon="qr-code-outline"
+        variant="outline"
+        style={{ flex: 0 }}
+        onPress={() => router.push('/guardian-code')}
+      />
     </Screen>
   )
 }

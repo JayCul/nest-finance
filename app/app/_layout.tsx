@@ -13,6 +13,8 @@ import { PropsWithChildren, useEffect } from 'react'
 import 'react-native-reanimated'
 import { AppProviders } from '@/components/app-providers'
 import { LockScreen } from '@/components/lock-screen'
+import { useGuardianWatcher } from '@/features/guardian/use-guardian-watcher'
+import { useNotificationRouting } from '@/features/notification-routing'
 import { useSecurity } from '@/features/security/session'
 import { colors } from '@/constants/theme'
 
@@ -47,6 +49,10 @@ export default function RootLayout() {
         <Stack.Screen name="settings-edit" />
         <Stack.Screen name="security-setup" />
         <Stack.Screen name="send" />
+        <Stack.Screen name="protect" />
+        <Stack.Screen name="guarded/[vault]" />
+        <Stack.Screen name="guardian-code" />
+        <Stack.Screen name="scan" />
         <Stack.Screen
           name="move"
           options={{ presentation: 'transparentModal', animation: 'fade', contentStyle: { backgroundColor: 'transparent' } }}
@@ -63,5 +69,17 @@ function SecurityGate({ children }: PropsWithChildren) {
   const { mode } = useSecurity()
   if (mode === 'loading') return null
   if (mode === 'locked') return <LockScreen />
-  return <>{children}</>
+  return (
+    <>
+      {children}
+      <GuardianWatcher enabled={mode === 'real'} />
+    </>
+  )
+}
+
+/** Alerts about vaults this wallet protects. Silent while the duress view is showing. */
+function GuardianWatcher({ enabled }: { enabled: boolean }) {
+  useGuardianWatcher(enabled)
+  useNotificationRouting(enabled)
+  return null
 }

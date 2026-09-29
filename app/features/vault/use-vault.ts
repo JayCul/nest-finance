@@ -51,6 +51,7 @@ import {
   parseWithdrawalRequestedEvent,
   PENDING_WITHDRAWAL_DISCRIMINATOR,
   Role,
+  type Vault,
 } from '@/generated/nest-vault'
 import { AppConfig } from '@/constants/app-config'
 import { getOrCreateSentinel } from './sentinel'
@@ -143,25 +144,27 @@ export function useVault() {
       const account = await fetchMaybeVault(client.rpc, vaultAddress.data!)
       if (!account.exists) return null
       const rentFloor = await client.rpc.getMinimumBalanceForRentExemption(BigInt(account.space)).send()
-      const lamports = BigInt(account.lamports)
-      const v = account.data
-      return {
-        address: account.address,
-        owner: v.owner,
-        sentinel: v.sentinel,
-        guardians: v.guardians,
-        guardianLastSeen: v.guardianLastSeen.map(Number),
-        safeList: v.safeList,
-        delaySecs: Number(v.delaySecs),
-        lockdownSecs: Number(v.lockdownSecs),
-        lockdownUntil: Number(v.lockdownUntil),
-        epoch: v.epoch,
-        nextWithdrawalId: v.nextWithdrawalId,
-        lamports,
-        available: lamports > rentFloor ? lamports - BigInt(rentFloor) : 0n,
-      }
+      return toVaultInfo(account.address, account.data, BigInt(account.lamports), BigInt(rentFloor))
     },
   })
+}
+
+export function toVaultInfo(address: Address, v: Vault, lamports: bigint, rentFloor: bigint): VaultInfo {
+  return {
+    address,
+    owner: v.owner,
+    sentinel: v.sentinel,
+    guardians: v.guardians,
+    guardianLastSeen: v.guardianLastSeen.map(Number),
+    safeList: v.safeList,
+    delaySecs: Number(v.delaySecs),
+    lockdownSecs: Number(v.lockdownSecs),
+    lockdownUntil: Number(v.lockdownUntil),
+    epoch: v.epoch,
+    nextWithdrawalId: v.nextWithdrawalId,
+    lamports,
+    available: lamports > rentFloor ? lamports - rentFloor : 0n,
+  }
 }
 
 export function usePendingWithdrawals() {
@@ -172,37 +175,66 @@ export function usePendingWithdrawals() {
     queryKey: ['pending', vaultAddress, vault.data?.epoch?.toString()],
     enabled: !!vaultAddress,
     refetchInterval: 15_000,
-    queryFn: async (): Promise<PendingItem[]> => {
-      const discriminator = getBase58Decoder().decode(PENDING_WITHDRAWAL_DISCRIMINATOR) as Base58EncodedBytes
-      const accounts = await client.rpc
-        .getProgramAccounts(NEST_VAULT_PROGRAM_ADDRESS, {
-          encoding: 'base64',
-          filters: [
-            { memcmp: { offset: 0n, bytes: discriminator, encoding: 'base58' } },
-            { memcmp: { offset: 8n, bytes: vaultAddress as unknown as Base58EncodedBytes, encoding: 'base58' } },
-          ],
-        })
-        .send()
-      const decoder = getPendingWithdrawalDecoder()
-      const base64 = getBase64Encoder()
-      return accounts
-        .map(({ pubkey, account }) => {
-          const p = decoder.decode(base64.encode(account.data[0]))
-          return {
-            address: pubkey,
-            id: p.id,
-            mint: p.mint,
-            amount: p.amount,
-            destination: p.destination,
-            requestedAt: Number(p.requestedAt),
-            unlockAt: Number(p.unlockAt),
-            epoch: p.epoch,
-            voided: p.epoch !== vault.data!.epoch,
-          }
-        })
-        .sort((a, b) => Number(b.id - a.id))
-    },
+    queryFn: () => fetchPendingWithdrawals(client.rpc, vaultAddress!, vault.data!.epoch),
   })
+}
+
+type NestRpc = ReturnType<typeof useMobileWallet>['client']['rpc']
+
+/** Pending withdrawals for any vault. Used by the owner view and the guardian view. */
+export async function fetchPendingWithdrawals(rpc: NestRpc, vault: Address, epoch: bigint): Promise<PendingItem[]> {
+  const discriminator = getBase58Decoder().decode(PENDING_WITHDRAWAL_DISCRIMINATOR) as Base58EncodedBytes
+  const accounts = await rpc
+    .getProgramAccounts(NEST_VAULT_PROGRAM_ADDRESS, {
+      encoding: 'base64',
+      filters: [
+        { memcmp: { offset: 0n, bytes: discriminator, encoding: 'base58' } },
+        { memcmp: { offset: 8n, bytes: vault as unknown as Base58EncodedBytes, encoding: 'base58' } },
+      ],
+    })
+    .send()
+  const decoder = getPendingWithdrawalDecoder()
+  const base64 = getBase64Encoder()
+  return accounts
+    .map(({ pubkey, account }) => {
+      const p = decoder.decode(base64.encode(account.data[0]))
+      return {
+        address: pubkey,
+        id: p.id,
+        mint: p.mint,
+        amount: p.amount,
+        destination: p.destination,
+        requestedAt: Number(p.requestedAt),
+        unlockAt: Number(p.unlockAt),
+        epoch: p.epoch,
+        voided: p.epoch !== epoch,
+      }
+    })
+    .sort((a, b) => Number(b.id - a.id))
+}
+
+/** Decoded vault events from its recent transactions, newest first. */
+export async function fetchVaultEvents(rpc: NestRpc, vault: Address, limit = 15): Promise<ActivityItem[]> {
+  const signatures = await rpc.getSignaturesForAddress(vault, { limit }).send()
+  const txs = await Promise.all(
+    signatures
+      .filter((s) => !s.err)
+      .map((s) =>
+        rpc
+          .getTransaction(s.signature, { maxSupportedTransactionVersion: 0, encoding: 'json' })
+          .send()
+          .then((tx) => ({ signature: s.signature, blockTime: Number(s.blockTime ?? 0), logs: tx?.meta?.logMessages ?? [] })),
+      ),
+  )
+  const items: ActivityItem[] = []
+  for (const tx of txs) {
+    for (const line of tx.logs) {
+      if (!line.startsWith('Program data: ')) continue
+      const item = parseEventLine(line.slice('Program data: '.length))
+      if (item) items.push({ signature: tx.signature, blockTime: tx.blockTime, ...item })
+    }
+  }
+  return items.sort((a, b) => b.blockTime - a.blockTime)
 }
 
 export function usePendingConfig() {
@@ -304,28 +336,7 @@ export function useVaultActivity() {
     queryKey: ['activity', vaultAddress],
     enabled: !!vaultAddress,
     refetchInterval: 30_000,
-    queryFn: async (): Promise<ActivityItem[]> => {
-      const signatures = await client.rpc.getSignaturesForAddress(vaultAddress!, { limit: 15 }).send()
-      const txs = await Promise.all(
-        signatures
-          .filter((s) => !s.err)
-          .map((s) =>
-            client.rpc
-              .getTransaction(s.signature, { maxSupportedTransactionVersion: 0, encoding: 'json' })
-              .send()
-              .then((tx) => ({ signature: s.signature, blockTime: Number(s.blockTime ?? 0), logs: tx?.meta?.logMessages ?? [] })),
-          ),
-      )
-      const items: ActivityItem[] = []
-      for (const tx of txs) {
-        for (const line of tx.logs) {
-          if (!line.startsWith('Program data: ')) continue
-          const item = parseEventLine(line.slice('Program data: '.length))
-          if (item) items.push({ signature: tx.signature, blockTime: tx.blockTime, ...item })
-        }
-      }
-      return items.sort((a, b) => b.blockTime - a.blockTime)
-    },
+    queryFn: () => fetchVaultEvents(client.rpc, vaultAddress!),
   })
 }
 

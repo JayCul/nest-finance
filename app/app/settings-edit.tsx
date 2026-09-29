@@ -1,7 +1,8 @@
 import { isAddress } from '@solana/kit'
 import * as Haptics from 'expo-haptics'
-import { router } from 'expo-router'
-import React, { useState } from 'react'
+import { router, useFocusEffect } from 'expo-router'
+import React, { useCallback, useState } from 'react'
+import { takeScannedGuardian } from '@/features/guardian/guardian-code'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Card, Field, Notice, PillButton, ScreenHeader, Segmented } from '@/components/ui'
@@ -32,6 +33,14 @@ export default function SettingsEditScreen() {
   const [safe, setSafe] = useState((v?.safeList ?? []).join('\n'))
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Pick up a code scanned on the scanner screen.
+  useFocusEffect(
+    useCallback(() => {
+      const scanned = takeScannedGuardian()
+      if (scanned) setGuardians((g) => (splitList(g).includes(scanned) ? g : [...splitList(g), scanned].join('\n')))
+    }, []),
+  )
   if (!v) return null
 
   const guardianList = splitList(guardians)
@@ -68,6 +77,13 @@ export default function SettingsEditScreen() {
             autoCorrect={false}
             placeholder="Guardian wallet address"
             style={[styles.multi]}
+          />
+          <PillButton
+            title="Scan guardian code"
+            icon="scan-outline"
+            variant="outline"
+            style={{ flex: 0 }}
+            onPress={() => router.push('/scan')}
           />
           <Field
             label="Safe addresses (up to 5, one per line)"

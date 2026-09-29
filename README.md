@@ -56,6 +56,16 @@ Both PINs open the same app through the same screen and take the same time. The 
 
 Unlocking later with the real PIN shows what happened in Settings. Practice mode runs the same flow without freezing anything and marks the text as a drill.
 
+## Guardians
+
+A guardian uses the same app with their own wallet. There is no invite handshake: the app finds every vault that lists the connected wallet as a guardian by searching the program's accounts at the fixed byte offsets of the three guardian slots.
+
+- **Alerts:** a new withdrawal request on a vault they protect, and freezes. A freeze signed by the owner's phone sentinel means the backup PIN was used, and the alert says so.
+- **Actions:** cancel a withdrawal, freeze the savings, and check in (an on-chain heartbeat the owner can see).
+- **Invites:** the guardian shows a QR code ("My guardian code"); the owner scans it when proposing a settings change. Adding a guardian waits the full delay like any other change.
+
+`app/scripts/owner-request.mjs` requests a withdrawal as the owner from outside the app, which is what a drainer or a coerced signature elsewhere looks like. Use it to test the guardian's alert and cancel flow.
+
 ## Run the app
 
 The app needs a development build (Mobile Wallet Adapter uses native modules, so Expo Go won't work) and an MWA wallet on the device. On an emulator, use Solana Mobile's [mock-mwa-wallet](https://github.com/solana-mobile/mock-mwa-wallet); it needs a device PIN, and you press **Authenticate** in it before signing.
@@ -92,7 +102,7 @@ Program ID (devnet): `EGe3adgVvYu3He7jgbi3sKQTWrV1v9JBNxT7nGQjA4AZ`
 - [x] Program deployed to devnet
 - [x] Phase 2: owner app (Android, Mobile Wallet Adapter)
 - [x] Phase 3: backup (duress) PIN, ordinary-wallet view, silent sentinel lockdown, SMS alert with location, practice mode
-- [ ] Phase 4: guardian mode
+- [x] Phase 4: guardian mode (auto-discovery of vaults you protect, alerts, cancel, freeze, check-in, QR invites)
 - [ ] Phase 5: SKR guardian stipends, safety score
 - [ ] Phase 6: submission
 

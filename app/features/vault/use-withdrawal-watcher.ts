@@ -29,11 +29,6 @@ export function useWithdrawalWatcher(enabled = true) {
       name: 'Withdrawal alerts',
       importance: Notifications.AndroidImportance.HIGH,
     }).catch(() => {})
-    const sub = Notifications.addNotificationResponseReceivedListener((response) => {
-      const address = response.notification.request.content.data?.address
-      if (typeof address === 'string') router.push({ pathname: '/withdrawal/[address]', params: { address } })
-    })
-    return () => sub.remove()
   }, [])
 
   useEffect(() => {

@@ -45,6 +45,13 @@
         {
           "locationWhenInUsePermission": "Nest Finance shares your location with your emergency contact only when your backup PIN is used."
         }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Nest Finance uses the camera only to scan a guardian code.",
+          "recordAudioAndroid": false
+        }
       ]
     ],
     "experiments": {
