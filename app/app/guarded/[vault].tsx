@@ -2,8 +2,9 @@ import { address } from '@solana/kit'
 import * as Haptics from 'expo-haptics'
 import { useLocalSearchParams } from 'expo-router'
 import React, { useEffect, useState } from 'react'
-import { Alert, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
+import { Alert, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { PullRefresh } from '@/components/pull-refresh'
 import { BalanceCard } from '@/components/balance-card'
 import { Card, InfoRow, ListRow, Notice, PillButton, ScreenHeader, SectionHeader } from '@/components/ui'
 import { colors, fonts, radius, space } from '@/constants/theme'
@@ -62,7 +63,7 @@ export default function GuardedVaultScreen() {
       <ScreenHeader title={nickname || 'Protected savings'} />
       <ScrollView
         contentContainerStyle={styles.body}
-        refreshControl={<RefreshControl refreshing={data.isRefetching} onRefresh={() => data.refetch()} tintColor={colors.primary} />}
+        refreshControl={<PullRefresh onRefresh={() => data.refetch()} />}
       >
         {backupPinUsed ? (
           <Notice tone="danger">

@@ -16,6 +16,8 @@ import {
 import {
   fetchPendingWithdrawals,
   fetchVaultEvents,
+  markPendingClosed,
+  refreshAfterSend,
   toVaultInfo,
   useSend,
   type VaultInfo,
@@ -77,9 +79,10 @@ export function useGuardedVault(address: Address | undefined) {
       if (!account.exists) return null
       const rentFloor = await client.rpc.getMinimumBalanceForRentExemption(BigInt(account.space)).send()
       const vault = toVaultInfo(account.address, account.data, BigInt(account.lamports), BigInt(rentFloor))
+      // Events are extra detail (one call per transaction); a rate-limited fetch shouldn't hide the rest.
       const [pending, events] = await Promise.all([
         fetchPendingWithdrawals(client.rpc, vault.address, vault.epoch),
-        fetchVaultEvents(client.rpc, vault.address, 10),
+        fetchVaultEvents(client.rpc, vault.address, 10).catch(() => []),
       ])
       return { vault, pending, events }
     },
@@ -89,10 +92,7 @@ export function useGuardedVault(address: Address | undefined) {
 export function useGuardianActions() {
   const send = useSend()
   const queryClient = useQueryClient()
-  const refresh = () =>
-    Promise.all(
-      ['guarded-vaults', 'guarded-vault', 'vault', 'pending'].map((key) => queryClient.invalidateQueries({ queryKey: [key] })),
-    )
+  const refresh = () => refreshAfterSend(queryClient, ['guarded-vaults', 'guarded-vault', 'vault', 'pending'])
   const wrap = (fn: () => Promise<string>) =>
     fn().then(async (sig) => {
       await refresh()
@@ -101,7 +101,11 @@ export function useGuardianActions() {
 
   return {
     cancel: (vault: Address, pending: Address) =>
-      wrap(() => send((authority) => [getCancelWithdrawalInstruction({ authority, vault, pending })])),
+      wrap(async () => {
+        const sig = await send((authority) => [getCancelWithdrawalInstruction({ authority, vault, pending })])
+        markPendingClosed(queryClient, pending)
+        return sig
+      }),
     freeze: (vault: Address) => wrap(() => send((authority) => [getLockdownInstruction({ authority, vault })])),
     checkIn: (vault: Address) => wrap(() => send((guardian) => [getGuardianHeartbeatInstruction({ guardian, vault })])),
   }

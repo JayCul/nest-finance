@@ -15,7 +15,9 @@ export default function TabsLayout() {
   useWithdrawalWatcher(!duress)
 
   if (!account) return <Redirect href="/connect" />
-  if (!duress && vault.isLoading) {
+  // Wait for the first answer about the vault. isLoading alone misses the moment before the vault
+  // address resolves (the query is still disabled), which flashed the no-vault Home.
+  if (!duress && vault.data === undefined && !vault.isError) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}>
         <ActivityIndicator color={colors.primary} />

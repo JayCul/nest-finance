@@ -1,7 +1,8 @@
 import { router } from 'expo-router'
 import React from 'react'
-import { RefreshControl, ScrollView, StyleSheet, Text } from 'react-native'
+import { ScrollView, StyleSheet, Text } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { PullRefresh } from '@/components/pull-refresh'
 import { Card, IconCircle, ListRow, Notice, PillButton, ScreenHeader } from '@/components/ui'
 import { colors, fonts, space } from '@/constants/theme'
 import { useGuardedVaults, useNickname } from '@/features/guardian/use-guardian'
@@ -35,7 +36,7 @@ export default function ProtectScreen() {
       <ScreenHeader title="People you protect" />
       <ScrollView
         contentContainerStyle={styles.body}
-        refreshControl={<RefreshControl refreshing={vaults.isRefetching} onRefresh={() => vaults.refetch()} tintColor={colors.primary} />}
+        refreshControl={<PullRefresh onRefresh={() => vaults.refetch()} />}
       >
         <Card>
           <IconCircle name="people" size={44} />

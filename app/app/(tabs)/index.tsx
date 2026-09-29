@@ -1,3 +1,4 @@
+import { PullRefresh } from '@/components/pull-refresh'
 import { DecoyHome } from '@/components/decoy'
 import { useIsDuress, useSecurity } from '@/features/security/session'
 import { ScoreRing } from '@/components/score-ring'
@@ -7,7 +8,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { useMobileWallet } from '@wallet-ui/react-native-kit'
 import { router } from 'expo-router'
 import React from 'react'
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { BalanceCard } from '@/components/balance-card'
 import { Card, IconCircle, InfoRow, ListRow, Money, Notice, PillButton, SectionHeader, StatusDot } from '@/components/ui'
@@ -43,13 +44,10 @@ function RealHome() {
   const frozen = v.lockdownUntil > now
   const live = (pending.data ?? []).filter((p) => !p.voided)
 
-  const refreshing = vault.isRefetching || pending.isRefetching || wallet.isRefetching
   const refresh = () => {
-    vault.refetch()
-    pending.refetch()
-    wallet.refetch()
     activity.refetch()
     price.refetch()
+    return Promise.all([vault.refetch(), pending.refetch(), wallet.refetch()])
   }
 
   return (
@@ -57,7 +55,7 @@ function RealHome() {
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.primary} />}
+        refreshControl={<PullRefresh onRefresh={refresh} />}
       >
         <BalanceCard
           label="Protected Balance"

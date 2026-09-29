@@ -1,8 +1,9 @@
+import { PullRefresh } from '@/components/pull-refresh'
 import { DecoyActivity } from '@/components/decoy'
 import { useIsDuress } from '@/features/security/session'
 import { router } from 'expo-router'
 import React from 'react'
-import { RefreshControl, ScrollView, StyleSheet, Text } from 'react-native'
+import { ScrollView, StyleSheet, Text } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { ListRow, SectionHeader } from '@/components/ui'
 import { colors, fonts, space } from '@/constants/theme'
@@ -21,14 +22,7 @@ function RealActivity() {
       <ScrollView
         contentContainerStyle={styles.scroll}
         refreshControl={
-          <RefreshControl
-            refreshing={activity.isRefetching}
-            onRefresh={() => {
-              activity.refetch()
-              pending.refetch()
-            }}
-            tintColor={colors.primary}
-          />
+          <PullRefresh onRefresh={() => Promise.all([activity.refetch(), pending.refetch()])} />
         }
       >
         <Text style={styles.title}>Activity</Text>

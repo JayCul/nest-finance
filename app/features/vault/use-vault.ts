@@ -20,7 +20,7 @@ import {
   type Signature,
   type TransactionSigner,
 } from '@solana/kit'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { type QueryClient, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useMobileWallet } from '@wallet-ui/react-native-kit'
 import { useEffect, useState } from 'react'
 import {
@@ -181,6 +181,20 @@ export function usePendingWithdrawals() {
 
 type NestRpc = ReturnType<typeof useMobileWallet>['client']['rpc']
 
+// Requests this phone just cancelled or completed. getProgramAccounts on the public RPC can
+// trail a confirmed transaction by several seconds, so these are hidden until it catches up.
+const closedPending = new Map<string, number>()
+export function markPendingClosed(queryClient: QueryClient, pending: Address) {
+  closedPending.set(pending, Date.now())
+  // Drop it from what's on screen now, in case the follow-up refetch is slow or rate limited.
+  const drop = (items: PendingItem[]) => items.filter((p) => p.address !== pending)
+  queryClient.setQueriesData<PendingItem[]>({ queryKey: ['pending'] }, (old) => old && drop(old))
+  queryClient.setQueriesData<{ pending: PendingItem[] }>({ queryKey: ['guarded-vault'] }, (old) =>
+    old && { ...old, pending: drop(old.pending) },
+  )
+}
+const recentlyClosed = (pending: Address) => Date.now() - (closedPending.get(pending) ?? 0) < 90_000
+
 /** Pending withdrawals for any vault. Used by the owner view and the guardian view. */
 export async function fetchPendingWithdrawals(rpc: NestRpc, vault: Address, epoch: bigint): Promise<PendingItem[]> {
   const discriminator = getBase58Decoder().decode(PENDING_WITHDRAWAL_DISCRIMINATOR) as Base58EncodedBytes
@@ -196,6 +210,7 @@ export async function fetchPendingWithdrawals(rpc: NestRpc, vault: Address, epoc
   const decoder = getPendingWithdrawalDecoder()
   const base64 = getBase64Encoder()
   return accounts
+    .filter(({ pubkey }) => !recentlyClosed(pubkey))
     .map(({ pubkey, account }) => {
       const p = decoder.decode(base64.encode(account.data[0]))
       return {
@@ -214,18 +229,37 @@ export async function fetchPendingWithdrawals(rpc: NestRpc, vault: Address, epoc
 }
 
 /** Decoded vault events from its recent transactions, newest first. */
+type ConfirmedTx = NonNullable<Awaited<ReturnType<ReturnType<NestRpc['getTransaction']>['send']>>>
+const txCache = new Map<string, ConfirmedTx>()
+
+/**
+ * Loads transactions by signature. Confirmed transactions never change, so they're cached; only new
+ * ones are fetched, a few at a time, because the public RPC rate limits bursts of getTransaction.
+ * A transaction that fails to load is skipped and retried on the next refresh.
+ */
+export async function getTransactionsCached(rpc: NestRpc, signatures: Signature[]): Promise<Map<string, ConfirmedTx>> {
+  const missing = signatures.filter((sig) => !txCache.has(sig))
+  for (let i = 0; i < missing.length; i += 4) {
+    await Promise.allSettled(
+      missing.slice(i, i + 4).map(async (sig) => {
+        const tx = await rpc.getTransaction(sig, { maxSupportedTransactionVersion: 0, encoding: 'json' }).send()
+        if (tx) txCache.set(sig, tx as ConfirmedTx)
+      }),
+    )
+  }
+  return new Map(signatures.filter((sig) => txCache.has(sig)).map((sig) => [sig, txCache.get(sig)!]))
+}
+
 export async function fetchVaultEvents(rpc: NestRpc, vault: Address, limit = 15): Promise<ActivityItem[]> {
-  const signatures = await rpc.getSignaturesForAddress(vault, { limit }).send()
-  const txs = await Promise.all(
-    signatures
-      .filter((s) => !s.err)
-      .map((s) =>
-        rpc
-          .getTransaction(s.signature, { maxSupportedTransactionVersion: 0, encoding: 'json' })
-          .send()
-          .then((tx) => ({ signature: s.signature, blockTime: Number(s.blockTime ?? 0), logs: tx?.meta?.logMessages ?? [] })),
-      ),
+  const signatures = (await rpc.getSignaturesForAddress(vault, { limit }).send()).filter((s) => !s.err)
+  const loaded = await getTransactionsCached(
+    rpc,
+    signatures.map((s) => s.signature),
   )
+  const txs = signatures.flatMap((s) => {
+    const tx = loaded.get(s.signature)
+    return tx ? [{ signature: s.signature, blockTime: Number(s.blockTime ?? 0), logs: tx.meta?.logMessages ?? [] }] : []
+  })
   const items: ActivityItem[] = []
   for (const tx of txs) {
     for (const line of tx.logs) {
@@ -458,18 +492,24 @@ async function pendingWithdrawalAddress(vault: Address, id: bigint) {
 // Actions
 // ---------------------------------------------------------------------------------------
 
+/**
+ * Invalidates queries now and twice more shortly after. The public RPC is load balanced, and the
+ * first read after a confirmed transaction can land on a node a slot or two behind.
+ */
+export function refreshAfterSend(queryClient: QueryClient, keys: string[]) {
+  const invalidate = () => Promise.all(keys.map((key) => queryClient.invalidateQueries({ queryKey: [key] })))
+  setTimeout(invalidate, 2500)
+  setTimeout(invalidate, 6000)
+  return invalidate()
+}
+
 export function useVaultActions() {
   const send = useSend()
   const queryClient = useQueryClient()
   const { account, client } = useMobileWallet()
   const vaultAddress = useVaultAddress().data
 
-  const refresh = () =>
-    Promise.all(
-      ['vault', 'pending', 'pending-config', 'wallet-balance', 'activity'].map((key) =>
-        queryClient.invalidateQueries({ queryKey: [key] }),
-      ),
-    )
+  const refresh = () => refreshAfterSend(queryClient, ['vault', 'pending', 'pending-config', 'wallet-balance', 'activity'])
 
   const run = async <T>(fn: () => Promise<T>) => {
     const out = await fn()
@@ -525,17 +565,21 @@ export function useVaultActions() {
     },
 
     async cancelWithdrawal(pending: Address) {
-      return run(() =>
-        send((authority) => [getCancelWithdrawalInstruction({ authority, vault: vaultAddress!, pending })]),
-      )
+      return run(async () => {
+        const sig = await send((authority) => [getCancelWithdrawalInstruction({ authority, vault: vaultAddress!, pending })])
+        markPendingClosed(queryClient, pending)
+        return sig
+      })
     },
 
     async executeWithdrawal(item: PendingItem) {
-      return run(() =>
-        send(() => [
+      return run(async () => {
+        const sig = await send(() => [
           getExecuteWithdrawalInstruction({ vault: vaultAddress!, pending: item.address, destination: item.destination }),
-        ]),
-      )
+        ])
+        markPendingClosed(queryClient, item.address)
+        return sig
+      })
     },
 
     async instantWithdraw(lamports: bigint, destination: string) {

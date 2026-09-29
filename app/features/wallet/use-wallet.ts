@@ -5,7 +5,7 @@ import { address, type Address } from '@solana/kit'
 import { useQuery } from '@tanstack/react-query'
 import { useMobileWallet } from '@wallet-ui/react-native-kit'
 import { AppConfig } from '@/constants/app-config'
-import { transferSol, useSend } from '@/features/vault/use-vault'
+import { getTransactionsCached, transferSol, useSend } from '@/features/vault/use-vault'
 
 export type WalletActivityItem = {
   signature: string
@@ -37,19 +37,14 @@ export function useWalletActivity() {
     refetchInterval: 30_000,
     queryFn: async (): Promise<WalletActivityItem[]> => {
       const owner = account!.address
-      const signatures = await client.rpc.getSignaturesForAddress(owner, { limit: 15 }).send()
-      const txs = await Promise.all(
-        signatures
-          .filter((s) => !s.err)
-          .map((s) =>
-            client.rpc
-              .getTransaction(s.signature, { maxSupportedTransactionVersion: 0, encoding: 'json' })
-              .send()
-              .then((tx) => ({ s, tx })),
-          ),
+      const signatures = (await client.rpc.getSignaturesForAddress(owner, { limit: 15 }).send()).filter((s) => !s.err)
+      const loaded = await getTransactionsCached(
+        client.rpc,
+        signatures.map((s) => s.signature),
       )
       const items: WalletActivityItem[] = []
-      for (const { s, tx } of txs) {
+      for (const s of signatures) {
+        const tx = loaded.get(s.signature)
         if (!tx?.meta) continue
         const keys = tx.transaction.message.accountKeys as readonly Address[]
         const i = keys.indexOf(owner)

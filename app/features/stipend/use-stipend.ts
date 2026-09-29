@@ -12,7 +12,7 @@ import {
   getFundStipendInstructionAsync,
   getSetupStipendInstructionAsync,
 } from '@/generated/nest-vault'
-import { useSend } from '@/features/vault/use-vault'
+import { refreshAfterSend, useSend } from '@/features/vault/use-vault'
 
 const TOKEN_PROGRAM = address('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA')
 const ATA_PROGRAM = address('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL')
@@ -91,12 +91,7 @@ export function useSkrBalance() {
 export function useStipendActions() {
   const send = useSend()
   const queryClient = useQueryClient()
-  const refresh = () =>
-    Promise.all(
-      ['stipend', 'skr-balance', 'guarded-vault', 'guarded-vaults', 'vault'].map((key) =>
-        queryClient.invalidateQueries({ queryKey: [key] }),
-      ),
-    )
+  const refresh = () => refreshAfterSend(queryClient, ['stipend', 'skr-balance', 'guarded-vault', 'guarded-vaults', 'vault'])
 
   return {
     /** Creates the pool and funds it in one approval. */

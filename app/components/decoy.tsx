@@ -6,8 +6,9 @@ import { useMobileWallet } from '@wallet-ui/react-native-kit'
 import * as Linking from 'expo-linking'
 import { router } from 'expo-router'
 import React from 'react'
-import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { PullRefresh } from '@/components/pull-refresh'
 import { BalanceCard } from '@/components/balance-card'
 import { Card, IconCircle, type IconName, ListRow, Money, PillButton, Screen, SectionHeader } from '@/components/ui'
 import { AppConfig } from '@/constants/app-config'
@@ -52,15 +53,7 @@ export function DecoyHome() {
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl
-            refreshing={wallet.isRefetching}
-            onRefresh={() => {
-              wallet.refetch()
-              usdc.refetch()
-              activity.refetch()
-            }}
-            tintColor={colors.primary}
-          />
+          <PullRefresh onRefresh={() => Promise.all([wallet.refetch(), usdc.refetch(), activity.refetch()])} />
         }
       >
         {drill ? <Text style={styles.practice}>Practice mode · nothing was frozen</Text> : null}
@@ -126,7 +119,7 @@ export function DecoyActivity() {
     <SafeAreaView style={styles.screen} edges={['top']}>
       <ScrollView
         contentContainerStyle={[styles.scroll, { gap: space.md }]}
-        refreshControl={<RefreshControl refreshing={activity.isRefetching} onRefresh={() => activity.refetch()} tintColor={colors.primary} />}
+        refreshControl={<PullRefresh onRefresh={() => activity.refetch()} />}
       >
         <Text style={styles.title}>Activity</Text>
         <SectionHeader title="History" />

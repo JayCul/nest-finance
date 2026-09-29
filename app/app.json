@@ -52,6 +52,13 @@
           "cameraPermission": "Nest Finance uses the camera only to scan a guardian code.",
           "recordAudioAndroid": false
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#12B9EC"
+        }
       ]
     ],
     "experiments": {
