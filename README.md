@@ -6,6 +6,14 @@ Nest Finance is a savings app for Solana Mobile (Seeker). It looks like an ordin
 
 Built for [Clock In](https://solanamobile.radiant.nexus/), the Solana Mobile hackathon.
 
+## Try it
+
+- **APK (devnet):** attached to the GitHub release. Install on a Seeker or any Android device with an MWA wallet.
+- **Demo video:** 2.5 minutes, recorded on an Android emulator with touches shown: owner tour, protected withdrawal, backup PIN, guardian alert and cancel. The voiceover script is in [docs/demo-video-script.md](docs/demo-video-script.md).
+- **Pitch deck:** 10 slides with speaker notes.
+
+The demo vault uses a 2-minute delay so a withdrawal can finish on camera. Real vaults choose 24 hours to 7 days.
+
 ## Why
 
 Crypto holders are increasingly targeted in person, and a Seeker in your hand tells people you hold crypto. Hardware wallets and seed phrases don't help when someone is standing next to you. Nest Finance makes that encounter pointless: even with your real key and your real PIN, an attacker cannot move your savings faster than the delay allows.
@@ -79,6 +87,12 @@ npx expo run:android
 
 The app talks to devnet. `@solana/kit` is pinned to 7.1.1 to match `@wallet-ui/react-native-kit`, and `@codama/renderers-js` to 2.4.0, the last release whose output runs on Kit 7.
 
+Release APK: `npx expo prebuild -p android` then `gradlew assembleRelease` in `android/`. On Windows, build from a short path such as `C:\nf\app`; the native modules exceed the 260-character path limit from a deep folder.
+
+### Recording the demo
+
+`scripts/demo/01` to `04` drive the emulator over adb and record each segment with `screenrecord`, with Show taps turned on (`adb shell settings put system show_touches 1`). `scripts/demo/assemble.sh` trims and joins them. Segment 1 needs the mock wallet holding the guardian key, the others the owner key (`scripts/mock-wallet-key.sh`).
+
 ## Build and test
 
 Requires Anchor 1.2, Solana CLI (Agave) 4.x and Rust. On Windows, run everything inside WSL:
@@ -104,7 +118,7 @@ Program ID (devnet): `EGe3adgVvYu3He7jgbi3sKQTWrV1v9JBNxT7nGQjA4AZ`
 - [x] Phase 3: backup (duress) PIN, ordinary-wallet view, silent sentinel lockdown, SMS alert with location, practice mode
 - [x] Phase 4: guardian mode (auto-discovery of vaults you protect, alerts, cancel, freeze, check-in, QR invites)
 - [x] Phase 5: SKR guardian rewards (on-chain stipend pool, 8-day accrual cap), safety score
-- [ ] Phase 6: submission
+- [ ] Phase 6: submission (release APK, demo video, pitch deck)
 
 ## Limits
 
