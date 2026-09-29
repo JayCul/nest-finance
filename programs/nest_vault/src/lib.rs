@@ -326,6 +326,79 @@ pub mod nest_vault {
         Ok(())
     }
 
+    /// Owner sets aside a token (SKR) to pay guardians per week of staying reachable.
+    pub fn setup_stipend(ctx: Context<SetupStipend>, rate_per_week: u64) -> Result<()> {
+        require!(rate_per_week > 0, VaultError::ZeroAmount);
+        let pool = &mut ctx.accounts.pool;
+        pool.vault = ctx.accounts.vault.key();
+        pool.mint = ctx.accounts.mint.key();
+        pool.rate_per_week = rate_per_week;
+        pool.claims = Vec::new();
+        pool.bump = ctx.bumps.pool;
+        emit!(StipendSetup { vault: pool.vault, mint: pool.mint, rate_per_week });
+        Ok(())
+    }
+
+    /// Anyone can top up the stipend pool.
+    pub fn fund_stipend(ctx: Context<FundStipend>, amount: u64) -> Result<()> {
+        require!(amount > 0, VaultError::ZeroAmount);
+        transfer_checked(
+            CpiContext::new(
+                ctx.accounts.token_program.key(),
+                TransferChecked {
+                    from: ctx.accounts.funder_token.to_account_info(),
+                    mint: ctx.accounts.mint.to_account_info(),
+                    to: ctx.accounts.pool_token.to_account_info(),
+                    authority: ctx.accounts.funder.to_account_info(),
+                },
+            ),
+            amount,
+            ctx.accounts.mint.decimals,
+        )?;
+        emit!(StipendFunded { vault: ctx.accounts.pool.vault, amount });
+        Ok(())
+    }
+
+    /// A guardian checks in and collects what they've earned. Accrual is capped at 8 days,
+    /// so skipping weekly check-ins forfeits the missed time. Also records a heartbeat.
+    pub fn claim_stipend(ctx: Context<ClaimStipend>) -> Result<()> {
+        let now = Clock::get()?.unix_timestamp;
+        let guardian = ctx.accounts.guardian.key();
+        let vault = &mut ctx.accounts.vault;
+        let index = vault
+            .guardians
+            .iter()
+            .position(|g| *g == guardian)
+            .ok_or(VaultError::NotGuardian)?;
+        vault.guardian_last_seen[index] = now;
+
+        let pool = &mut ctx.accounts.pool;
+        let amount = pool.accrued(&guardian, now).min(ctx.accounts.pool_token.amount);
+        pool.record_claim(guardian, now);
+
+        if amount > 0 {
+            let vault_key = vault.key();
+            let seeds: &[&[u8]] = &[STIPEND_SEED, vault_key.as_ref(), &[pool.bump]];
+            transfer_checked(
+                CpiContext::new_with_signer(
+                    ctx.accounts.token_program.key(),
+                    TransferChecked {
+                        from: ctx.accounts.pool_token.to_account_info(),
+                        mint: ctx.accounts.mint.to_account_info(),
+                        to: ctx.accounts.guardian_token.to_account_info(),
+                        authority: pool.to_account_info(),
+                    },
+                    &[seeds],
+                ),
+                amount,
+                ctx.accounts.mint.decimals,
+            )?;
+        }
+
+        emit!(StipendClaimed { vault: vault.key(), guardian, amount, at: now });
+        Ok(())
+    }
+
     /// Guardians check in so the owner (and Phase 5 SKR stipends) can see they are reachable.
     pub fn guardian_heartbeat(ctx: Context<GuardianHeartbeat>) -> Result<()> {
         let now = Clock::get()?.unix_timestamp;
@@ -604,6 +677,92 @@ pub struct CancelConfig<'info> {
         close = vault
     )]
     pub pending_config: Account<'info, PendingConfig>,
+}
+
+#[derive(Accounts)]
+pub struct SetupStipend<'info> {
+    #[account(mut)]
+    pub owner: Signer<'info>,
+    #[account(
+        seeds = [VAULT_SEED, owner.key().as_ref()],
+        bump = vault.bump,
+        has_one = owner
+    )]
+    pub vault: Account<'info, Vault>,
+    #[account(
+        init,
+        payer = owner,
+        space = 8 + StipendPool::INIT_SPACE,
+        seeds = [STIPEND_SEED, vault.key().as_ref()],
+        bump
+    )]
+    pub pool: Account<'info, StipendPool>,
+    #[account(mint::token_program = token_program)]
+    pub mint: InterfaceAccount<'info, Mint>,
+    #[account(
+        init,
+        payer = owner,
+        associated_token::mint = mint,
+        associated_token::authority = pool,
+        associated_token::token_program = token_program
+    )]
+    pub pool_token: InterfaceAccount<'info, TokenAccount>,
+    pub token_program: Interface<'info, TokenInterface>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct FundStipend<'info> {
+    pub funder: Signer<'info>,
+    #[account(has_one = mint)]
+    pub pool: Account<'info, StipendPool>,
+    pub mint: InterfaceAccount<'info, Mint>,
+    #[account(mut, token::mint = mint, token::authority = funder, token::token_program = token_program)]
+    pub funder_token: InterfaceAccount<'info, TokenAccount>,
+    #[account(
+        mut,
+        associated_token::mint = mint,
+        associated_token::authority = pool,
+        associated_token::token_program = token_program
+    )]
+    pub pool_token: InterfaceAccount<'info, TokenAccount>,
+    pub token_program: Interface<'info, TokenInterface>,
+}
+
+#[derive(Accounts)]
+pub struct ClaimStipend<'info> {
+    #[account(mut)]
+    pub guardian: Signer<'info>,
+    #[account(mut, seeds = [VAULT_SEED, vault.owner.as_ref()], bump = vault.bump)]
+    pub vault: Account<'info, Vault>,
+    #[account(
+        mut,
+        seeds = [STIPEND_SEED, vault.key().as_ref()],
+        bump = pool.bump,
+        has_one = vault,
+        has_one = mint
+    )]
+    pub pool: Account<'info, StipendPool>,
+    pub mint: InterfaceAccount<'info, Mint>,
+    #[account(
+        mut,
+        associated_token::mint = mint,
+        associated_token::authority = pool,
+        associated_token::token_program = token_program
+    )]
+    pub pool_token: InterfaceAccount<'info, TokenAccount>,
+    #[account(
+        init_if_needed,
+        payer = guardian,
+        associated_token::mint = mint,
+        associated_token::authority = guardian,
+        associated_token::token_program = token_program
+    )]
+    pub guardian_token: InterfaceAccount<'info, TokenAccount>,
+    pub token_program: Interface<'info, TokenInterface>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]

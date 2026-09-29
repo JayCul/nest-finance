@@ -7,6 +7,7 @@ import { Card, IconCircle, ListRow, Notice, PillButton, Screen, SectionHeader } 
 import { colors, fonts, space } from '@/constants/theme'
 import { useChainNow, useVault } from '@/features/vault/use-vault'
 import { useGuardedVaults } from '@/features/guardian/use-guardian'
+import { GuardianRewards } from '@/components/guardian-rewards'
 import { formatWhen, shortAddress } from '@/utils/format'
 
 function RealGuardians() {
@@ -56,6 +57,8 @@ function RealGuardians() {
         onPress={() => router.push('/settings-edit')}
       />
       <Text style={styles.fine}>Guardian changes take effect after your withdrawal delay.</Text>
+
+      {v ? <GuardianRewards vault={v} /> : null}
 
       <SectionHeader title="People you protect" />
       {(guarded.data ?? []).map((g) => (

@@ -785,3 +785,121 @@ fn spl_tokens_follow_the_same_rules() {
     lockdown(&mut env, &sentinel).unwrap();
     expect_err(send(&mut env.svm, &[instant(env.vault, safe_token)], &owner, &[]), VaultError::InLockdown);
 }
+
+// ---------------------------------------------------------------------------------------
+// SKR stipend for guardians
+// ---------------------------------------------------------------------------------------
+
+fn stipend_pda(vault: &Pubkey) -> Pubkey {
+    Pubkey::find_program_address(&[b"stipend", vault.as_ref()], &program_id()).0
+}
+
+/// Owner with a vault, a mint (standing in for SKR) and a funded stipend paying `rate` per week.
+fn setup_stipend(rate: u64, fund: u64) -> (Env, Pubkey) {
+    let mut env = setup();
+    let owner = env.owner.insecure_clone();
+    let mint = create_mint(&mut env.svm, &owner);
+    let owner_token = create_token_account(&mut env.svm, &owner, &mint, &owner.pubkey());
+    let mint_to = spl_token::instruction::mint_to(&spl_token::ID, &mint, &owner_token, &owner.pubkey(), &[], fund).unwrap();
+    send(&mut env.svm, &[mint_to], &owner, &[]).unwrap();
+
+    let pool = stipend_pda(&env.vault);
+    let pool_token = ata(&pool, &mint);
+    let init = ix(
+        nest_vault::instruction::SetupStipend { rate_per_week: rate },
+        nest_vault::accounts::SetupStipend {
+            owner: owner.pubkey(),
+            vault: env.vault,
+            pool,
+            mint,
+            pool_token,
+            token_program: spl_token::ID,
+            associated_token_program: anchor_spl::associated_token::ID,
+            system_program: system_program::ID,
+        },
+    );
+    let fund_ix = ix(
+        nest_vault::instruction::FundStipend { amount: fund },
+        nest_vault::accounts::FundStipend {
+            funder: owner.pubkey(),
+            pool,
+            mint,
+            funder_token: owner_token,
+            pool_token,
+            token_program: spl_token::ID,
+        },
+    );
+    send(&mut env.svm, &[init, fund_ix], &owner, &[]).unwrap();
+    assert_eq!(token_balance(&env.svm, &pool_token), fund);
+    (env, mint)
+}
+
+fn claim(env: &mut Env, mint: Pubkey, who: &Keypair) -> TxResult {
+    let pool = stipend_pda(&env.vault);
+    let i = ix(
+        nest_vault::instruction::ClaimStipend {},
+        nest_vault::accounts::ClaimStipend {
+            guardian: who.pubkey(),
+            vault: env.vault,
+            pool,
+            mint,
+            pool_token: ata(&pool, &mint),
+            guardian_token: ata(&who.pubkey(), &mint),
+            token_program: spl_token::ID,
+            associated_token_program: anchor_spl::associated_token::ID,
+            system_program: system_program::ID,
+        },
+    );
+    send(&mut env.svm, &[i], who, &[])
+}
+
+const WEEK: i64 = 7 * 24 * 60 * 60;
+const DAY: i64 = 24 * 60 * 60;
+
+#[test]
+fn guardian_first_claim_pays_a_week_and_counts_as_check_in() {
+    let (mut env, mint) = setup_stipend(700_000, 10_000_000);
+    let guardian = env.guardian.insecure_clone();
+    warp(&mut env.svm, DAY);
+    claim(&mut env, mint, &guardian).unwrap();
+    assert_eq!(token_balance(&env.svm, &ata(&guardian.pubkey(), &mint)), 700_000);
+    assert_eq!(vault_state(&env.svm, &env.vault).guardian_last_seen, vec![now(&env.svm)]);
+}
+
+#[test]
+fn stipend_accrues_pro_rata_and_caps_at_eight_days() {
+    let (mut env, mint) = setup_stipend(700_000, 10_000_000);
+    let guardian = env.guardian.insecure_clone();
+    let g_token = ata(&guardian.pubkey(), &mint);
+    claim(&mut env, mint, &guardian).unwrap(); // first claim: one week
+    assert_eq!(token_balance(&env.svm, &g_token), 700_000);
+
+    warp(&mut env.svm, 3 * DAY);
+    claim(&mut env, mint, &guardian).unwrap(); // three days: 3/7 of a week
+    assert_eq!(token_balance(&env.svm, &g_token), 700_000 + 300_000);
+
+    warp(&mut env.svm, 30 * DAY);
+    claim(&mut env, mint, &guardian).unwrap(); // a month away: capped at 8 days
+    assert_eq!(token_balance(&env.svm, &g_token), 700_000 + 300_000 + 800_000);
+    let _ = WEEK;
+}
+
+#[test]
+fn only_guardians_can_claim() {
+    let (mut env, mint) = setup_stipend(700_000, 10_000_000);
+    let attacker = env.attacker.insecure_clone();
+    let owner = env.owner.insecure_clone();
+    expect_err(claim(&mut env, mint, &attacker), VaultError::NotGuardian);
+    expect_err(claim(&mut env, mint, &owner), VaultError::NotGuardian);
+}
+
+#[test]
+fn empty_pool_still_records_the_check_in() {
+    let (mut env, mint) = setup_stipend(700_000, 100_000);
+    let guardian = env.guardian.insecure_clone();
+    claim(&mut env, mint, &guardian).unwrap(); // pays out the 100_000 that's there
+    assert_eq!(token_balance(&env.svm, &ata(&guardian.pubkey(), &mint)), 100_000);
+    warp(&mut env.svm, DAY);
+    claim(&mut env, mint, &guardian).unwrap(); // nothing left, but the heartbeat lands
+    assert_eq!(vault_state(&env.svm, &env.vault).guardian_last_seen, vec![now(&env.svm)]);
+}

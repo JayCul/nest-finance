@@ -6,5 +6,6 @@
  * @see https://github.com/codama-idl/codama
  */
 
+export * from './guardianClaim'
 export * from './role'
 export * from './vaultParams'

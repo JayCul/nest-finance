@@ -1,5 +1,7 @@
 import { DecoyHome } from '@/components/decoy'
 import { useIsDuress, useSecurity } from '@/features/security/session'
+import { ScoreRing } from '@/components/score-ring'
+import { useSafetyScore } from '@/features/vault/use-safety-score'
 import { Ionicons } from '@expo/vector-icons'
 import { useMobileWallet } from '@wallet-ui/react-native-kit'
 import { router } from 'expo-router'
@@ -29,6 +31,7 @@ function RealHome() {
   const activity = useVaultActivity()
   const now = useChainNow()
   const { pinsEnabled } = useSecurity()
+  const safety = useSafetyScore()
 
   const v = vault.data
   if (!v || !account) return null
@@ -149,13 +152,17 @@ function RealHome() {
 
         <SectionHeader title="Protection" />
         <Card>
-          <View style={styles.protectionHead}>
-            <IconCircle name="shield-checkmark" size={38} />
+          <Pressable style={styles.protectionHead} onPress={() => router.push('/safety')}>
+            {safety ? <ScoreRing score={safety.score} size={52} /> : <IconCircle name="shield-checkmark" size={38} />}
             <View style={{ flex: 1 }}>
               <Text style={styles.protectionTitle}>Savings protection</Text>
               <StatusDot color={frozen ? colors.warning : colors.success} label={frozen ? 'Frozen' : 'Active'} />
             </View>
-          </View>
+            <View style={{ alignItems: 'flex-end' }}>
+              <Text style={styles.scoreLink}>Safety score</Text>
+              <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
+            </View>
+          </Pressable>
           <View style={styles.divider} />
           <InfoRow label="Withdrawal delay" value={formatDuration(v.delaySecs)} />
           <InfoRow
@@ -249,6 +256,7 @@ const styles = StyleSheet.create({
   tileSub: { fontFamily: fonts.medium, fontSize: 11.5, color: colors.textSecondary },
   protectionHead: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   protectionTitle: { fontFamily: fonts.bold, fontSize: 15, color: colors.text },
+  scoreLink: { fontFamily: fonts.semibold, fontSize: 12, color: colors.primaryDark },
   divider: { height: 1, backgroundColor: colors.border },
   empty: { fontFamily: fonts.medium, fontSize: 13, color: colors.textSecondary, textAlign: 'center', paddingVertical: space.lg },
 })

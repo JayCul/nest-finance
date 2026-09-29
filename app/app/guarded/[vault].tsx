@@ -12,6 +12,9 @@ import { useGuardedVault, useGuardianActions, useNickname } from '@/features/gua
 import { useChainNow, useSolPrice } from '@/features/vault/use-vault'
 import { useMobileWallet } from '@wallet-ui/react-native-kit'
 import { Money } from '@/components/ui'
+import { accruedFor, toSkr, useStipend, useStipendActions } from '@/features/stipend/use-stipend'
+
+const fmtSkr = (n: number) => n.toLocaleString('en-US', { maximumFractionDigits: 2 })
 import { formatCountdown, formatDuration, formatSol, formatWhen, lamportsToSol, shortAddress, usd } from '@/utils/format'
 
 /** What a guardian sees for one vault they protect, and what they can do about it. */
@@ -22,6 +25,8 @@ export default function GuardedVaultScreen() {
   const price = useSolPrice()
   const now = useChainNow()
   const actions = useGuardianActions()
+  const stipend = useStipend(vaultParam ? address(vaultParam) : undefined)
+  const stipendActions = useStipendActions()
   const { nickname, save } = useNickname(vaultParam)
   const [name, setName] = useState('')
   const [busy, setBusy] = useState<string | null>(null)
@@ -103,13 +108,18 @@ export default function GuardedVaultScreen() {
         <Card>
           <InfoRow label="Withdrawal delay" value={formatDuration(vault.delaySecs)} />
           <InfoRow label="Your last check-in" value={lastCheckIn ? formatWhen(lastCheckIn) : '—'} />
+          {stipend.data ? (
+            <InfoRow label="Rewards" value={`${fmtSkr(toSkr(stipend.data.ratePerWeek))} SKR / week`} />
+          ) : null}
           <PillButton
-            title="Check in"
+            title={stipend.data && account ? `Check in & collect ${fmtSkr(toSkr(accruedFor(stipend.data, account.address, now)))} SKR` : 'Check in'}
             icon="checkmark-done-outline"
             variant="outline"
             loading={busy === 'checkin'}
             style={{ flex: 0 }}
-            onPress={() => run('checkin', () => actions.checkIn(vault.address))}
+            onPress={() =>
+              run('checkin', () => (stipend.data ? stipendActions.claim(vault.address) : actions.checkIn(vault.address)))
+            }
           />
           <PillButton
             title={frozen ? 'Extend freeze' : 'Freeze their savings'}

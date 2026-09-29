@@ -5,6 +5,12 @@ use crate::errors::VaultError;
 pub const VAULT_SEED: &[u8] = b"vault";
 pub const WITHDRAWAL_SEED: &[u8] = b"withdrawal";
 pub const CONFIG_SEED: &[u8] = b"config";
+pub const STIPEND_SEED: &[u8] = b"stipend";
+
+pub const WEEK_SECS: i64 = 7 * 24 * 60 * 60;
+/// A guardian can collect at most this much time per claim, so missing weekly
+/// check-ins forfeits the missed weeks.
+pub const STIPEND_MAX_ACCRUAL_SECS: i64 = 8 * 24 * 60 * 60;
 
 pub const MAX_GUARDIANS: usize = 3;
 pub const MAX_SAFE_ADDRESSES: usize = 5;
@@ -141,6 +147,50 @@ pub struct PendingWithdrawal {
     pub unlock_at: i64,
     pub epoch: u64,
     pub bump: u8,
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, PartialEq, Eq, Debug, InitSpace)]
+pub struct GuardianClaim {
+    pub guardian: Pubkey,
+    pub last_claim: i64,
+}
+
+/// SKR (or any SPL token) the owner sets aside to pay guardians for staying reachable.
+/// Separate from savings: its token account is owned by this PDA, not the vault.
+#[account]
+#[derive(InitSpace)]
+pub struct StipendPool {
+    pub vault: Pubkey,
+    pub mint: Pubkey,
+    pub rate_per_week: u64,
+    #[max_len(MAX_GUARDIANS)]
+    pub claims: Vec<GuardianClaim>,
+    pub bump: u8,
+}
+
+impl StipendPool {
+    /// Amount accrued since the guardian's last claim, capped at `STIPEND_MAX_ACCRUAL_SECS`.
+    /// A first claim counts as one week so a new guardian is paid on their first check-in.
+    pub fn accrued(&self, guardian: &Pubkey, now: i64) -> u64 {
+        let elapsed = match self.claims.iter().find(|c| c.guardian == *guardian) {
+            Some(c) => (now - c.last_claim).clamp(0, STIPEND_MAX_ACCRUAL_SECS),
+            None => WEEK_SECS,
+        };
+        ((self.rate_per_week as u128) * (elapsed as u128) / (WEEK_SECS as u128)) as u64
+    }
+
+    pub fn record_claim(&mut self, guardian: Pubkey, now: i64) {
+        match self.claims.iter_mut().find(|c| c.guardian == guardian) {
+            Some(c) => c.last_claim = now,
+            None => {
+                // Drop entries for people who are no longer guardians to make room.
+                if self.claims.len() >= MAX_GUARDIANS {
+                    self.claims.remove(0);
+                }
+                self.claims.push(GuardianClaim { guardian, last_claim: now });
+            }
+        }
+    }
 }
 
 #[account]

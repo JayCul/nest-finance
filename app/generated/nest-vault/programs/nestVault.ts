@@ -36,11 +36,14 @@ import {
 import {
   getPendingConfigCodec,
   getPendingWithdrawalCodec,
+  getStipendPoolCodec,
   getVaultCodec,
   type PendingConfig,
   type PendingConfigArgs,
   type PendingWithdrawal,
   type PendingWithdrawalArgs,
+  type StipendPool,
+  type StipendPoolArgs,
   type Vault,
   type VaultArgs,
 } from '../accounts'
@@ -48,10 +51,12 @@ import {
   getApplyConfigInstructionAsync,
   getCancelConfigInstructionAsync,
   getCancelWithdrawalInstruction,
+  getClaimStipendInstructionAsync,
   getDepositSolInstruction,
   getDepositTokenInstructionAsync,
   getExecuteWithdrawalInstruction,
   getExpediteWithdrawalInstructionAsync,
+  getFundStipendInstructionAsync,
   getGuardianHeartbeatInstruction,
   getInitVaultInstructionAsync,
   getInstantWithdrawInstructionAsync,
@@ -59,13 +64,16 @@ import {
   getLockdownInstruction,
   getProposeConfigInstructionAsync,
   getRequestWithdrawalInstructionAsync,
+  getSetupStipendInstructionAsync,
   parseApplyConfigInstruction,
   parseCancelConfigInstruction,
   parseCancelWithdrawalInstruction,
+  parseClaimStipendInstruction,
   parseDepositSolInstruction,
   parseDepositTokenInstruction,
   parseExecuteWithdrawalInstruction,
   parseExpediteWithdrawalInstruction,
+  parseFundStipendInstruction,
   parseGuardianHeartbeatInstruction,
   parseInitVaultInstruction,
   parseInstantWithdrawInstruction,
@@ -73,13 +81,16 @@ import {
   parseLockdownInstruction,
   parseProposeConfigInstruction,
   parseRequestWithdrawalInstruction,
+  parseSetupStipendInstruction,
   type ApplyConfigAsyncInput,
   type CancelConfigAsyncInput,
   type CancelWithdrawalInput,
+  type ClaimStipendAsyncInput,
   type DepositSolInput,
   type DepositTokenAsyncInput,
   type ExecuteWithdrawalInput,
   type ExpediteWithdrawalAsyncInput,
+  type FundStipendAsyncInput,
   type GuardianHeartbeatInput,
   type InitVaultAsyncInput,
   type InstantWithdrawAsyncInput,
@@ -88,10 +99,12 @@ import {
   type ParsedApplyConfigInstruction,
   type ParsedCancelConfigInstruction,
   type ParsedCancelWithdrawalInstruction,
+  type ParsedClaimStipendInstruction,
   type ParsedDepositSolInstruction,
   type ParsedDepositTokenInstruction,
   type ParsedExecuteWithdrawalInstruction,
   type ParsedExpediteWithdrawalInstruction,
+  type ParsedFundStipendInstruction,
   type ParsedGuardianHeartbeatInstruction,
   type ParsedInitVaultInstruction,
   type ParsedInstantWithdrawInstruction,
@@ -99,10 +112,12 @@ import {
   type ParsedLockdownInstruction,
   type ParsedProposeConfigInstruction,
   type ParsedRequestWithdrawalInstruction,
+  type ParsedSetupStipendInstruction,
   type ProposeConfigAsyncInput,
   type RequestWithdrawalAsyncInput,
+  type SetupStipendAsyncInput,
 } from '../instructions'
-import { findPendingConfigPda, findVaultPda } from '../pdas'
+import { findPendingConfigPda, findPoolPda, findVaultPda } from '../pdas'
 
 export const NEST_VAULT_PROGRAM_ADDRESS =
   'EGe3adgVvYu3He7jgbi3sKQTWrV1v9JBNxT7nGQjA4AZ' as Address<'EGe3adgVvYu3He7jgbi3sKQTWrV1v9JBNxT7nGQjA4AZ'>
@@ -110,6 +125,7 @@ export const NEST_VAULT_PROGRAM_ADDRESS =
 export enum NestVaultAccount {
   PendingConfig,
   PendingWithdrawal,
+  StipendPool,
   Vault,
 }
 
@@ -136,6 +152,15 @@ export function identifyNestVaultAccount(account: { data: ReadonlyUint8Array } |
   if (
     containsBytes(
       data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(new Uint8Array([222, 9, 156, 39, 47, 62, 157, 126])),
+      0,
+    )
+  ) {
+    return NestVaultAccount.StipendPool
+  }
+  if (
+    containsBytes(
+      data,
       fixEncoderSize(getBytesEncoder(), 8).encode(new Uint8Array([211, 8, 232, 43, 2, 152, 117, 119])),
       0,
     )
@@ -157,6 +182,9 @@ export enum NestVaultEvent {
   InstantWithdrawal,
   LockdownLifted,
   LockdownTriggered,
+  StipendClaimed,
+  StipendFunded,
+  StipendSetup,
   VaultCreated,
   WithdrawalCancelled,
   WithdrawalExecuted,
@@ -240,6 +268,33 @@ export function identifyNestVaultEvent(event: { data: ReadonlyUint8Array } | Rea
   if (
     containsBytes(
       data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(new Uint8Array([62, 117, 186, 162, 162, 175, 233, 198])),
+      0,
+    )
+  ) {
+    return NestVaultEvent.StipendClaimed
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(new Uint8Array([23, 249, 226, 169, 91, 194, 90, 164])),
+      0,
+    )
+  ) {
+    return NestVaultEvent.StipendFunded
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(new Uint8Array([106, 198, 157, 233, 224, 228, 213, 34])),
+      0,
+    )
+  ) {
+    return NestVaultEvent.StipendSetup
+  }
+  if (
+    containsBytes(
+      data,
       fixEncoderSize(getBytesEncoder(), 8).encode(new Uint8Array([117, 25, 120, 254, 75, 236, 78, 115])),
       0,
     )
@@ -280,10 +335,12 @@ export enum NestVaultInstruction {
   ApplyConfig,
   CancelConfig,
   CancelWithdrawal,
+  ClaimStipend,
   DepositSol,
   DepositToken,
   ExecuteWithdrawal,
   ExpediteWithdrawal,
+  FundStipend,
   GuardianHeartbeat,
   InitVault,
   InstantWithdraw,
@@ -291,6 +348,7 @@ export enum NestVaultInstruction {
   Lockdown,
   ProposeConfig,
   RequestWithdrawal,
+  SetupStipend,
 }
 
 export function identifyNestVaultInstruction(
@@ -327,6 +385,15 @@ export function identifyNestVaultInstruction(
   if (
     containsBytes(
       data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(new Uint8Array([74, 251, 16, 2, 92, 43, 219, 221])),
+      0,
+    )
+  ) {
+    return NestVaultInstruction.ClaimStipend
+  }
+  if (
+    containsBytes(
+      data,
       fixEncoderSize(getBytesEncoder(), 8).encode(new Uint8Array([108, 81, 78, 117, 125, 155, 56, 200])),
       0,
     )
@@ -359,6 +426,15 @@ export function identifyNestVaultInstruction(
     )
   ) {
     return NestVaultInstruction.ExpediteWithdrawal
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(new Uint8Array([40, 3, 152, 80, 13, 115, 58, 26])),
+      0,
+    )
+  ) {
+    return NestVaultInstruction.FundStipend
   }
   if (
     containsBytes(
@@ -423,6 +499,15 @@ export function identifyNestVaultInstruction(
   ) {
     return NestVaultInstruction.RequestWithdrawal
   }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(new Uint8Array([118, 104, 202, 222, 150, 68, 242, 207])),
+      0,
+    )
+  ) {
+    return NestVaultInstruction.SetupStipend
+  }
   throw new SolanaError(SOLANA_ERROR__PROGRAM_CLIENTS__FAILED_TO_IDENTIFY_INSTRUCTION, {
     instructionData: data,
     programName: 'nestVault',
@@ -433,10 +518,12 @@ export type ParsedNestVaultInstruction<TProgram extends string = 'EGe3adgVvYu3He
   | ({ instructionType: NestVaultInstruction.ApplyConfig } & ParsedApplyConfigInstruction<TProgram>)
   | ({ instructionType: NestVaultInstruction.CancelConfig } & ParsedCancelConfigInstruction<TProgram>)
   | ({ instructionType: NestVaultInstruction.CancelWithdrawal } & ParsedCancelWithdrawalInstruction<TProgram>)
+  | ({ instructionType: NestVaultInstruction.ClaimStipend } & ParsedClaimStipendInstruction<TProgram>)
   | ({ instructionType: NestVaultInstruction.DepositSol } & ParsedDepositSolInstruction<TProgram>)
   | ({ instructionType: NestVaultInstruction.DepositToken } & ParsedDepositTokenInstruction<TProgram>)
   | ({ instructionType: NestVaultInstruction.ExecuteWithdrawal } & ParsedExecuteWithdrawalInstruction<TProgram>)
   | ({ instructionType: NestVaultInstruction.ExpediteWithdrawal } & ParsedExpediteWithdrawalInstruction<TProgram>)
+  | ({ instructionType: NestVaultInstruction.FundStipend } & ParsedFundStipendInstruction<TProgram>)
   | ({ instructionType: NestVaultInstruction.GuardianHeartbeat } & ParsedGuardianHeartbeatInstruction<TProgram>)
   | ({ instructionType: NestVaultInstruction.InitVault } & ParsedInitVaultInstruction<TProgram>)
   | ({ instructionType: NestVaultInstruction.InstantWithdraw } & ParsedInstantWithdrawInstruction<TProgram>)
@@ -444,6 +531,7 @@ export type ParsedNestVaultInstruction<TProgram extends string = 'EGe3adgVvYu3He
   | ({ instructionType: NestVaultInstruction.Lockdown } & ParsedLockdownInstruction<TProgram>)
   | ({ instructionType: NestVaultInstruction.ProposeConfig } & ParsedProposeConfigInstruction<TProgram>)
   | ({ instructionType: NestVaultInstruction.RequestWithdrawal } & ParsedRequestWithdrawalInstruction<TProgram>)
+  | ({ instructionType: NestVaultInstruction.SetupStipend } & ParsedSetupStipendInstruction<TProgram>)
 
 export function parseNestVaultInstruction<TProgram extends string>(
   instruction: Instruction<TProgram> & InstructionWithData<ReadonlyUint8Array>,
@@ -464,6 +552,10 @@ export function parseNestVaultInstruction<TProgram extends string>(
         instructionType: NestVaultInstruction.CancelWithdrawal,
         ...parseCancelWithdrawalInstruction(instruction),
       }
+    }
+    case NestVaultInstruction.ClaimStipend: {
+      assertIsInstructionWithAccounts(instruction)
+      return { instructionType: NestVaultInstruction.ClaimStipend, ...parseClaimStipendInstruction(instruction) }
     }
     case NestVaultInstruction.DepositSol: {
       assertIsInstructionWithAccounts(instruction)
@@ -486,6 +578,10 @@ export function parseNestVaultInstruction<TProgram extends string>(
         instructionType: NestVaultInstruction.ExpediteWithdrawal,
         ...parseExpediteWithdrawalInstruction(instruction),
       }
+    }
+    case NestVaultInstruction.FundStipend: {
+      assertIsInstructionWithAccounts(instruction)
+      return { instructionType: NestVaultInstruction.FundStipend, ...parseFundStipendInstruction(instruction) }
     }
     case NestVaultInstruction.GuardianHeartbeat: {
       assertIsInstructionWithAccounts(instruction)
@@ -521,6 +617,10 @@ export function parseNestVaultInstruction<TProgram extends string>(
         ...parseRequestWithdrawalInstruction(instruction),
       }
     }
+    case NestVaultInstruction.SetupStipend: {
+      assertIsInstructionWithAccounts(instruction)
+      return { instructionType: NestVaultInstruction.SetupStipend, ...parseSetupStipendInstruction(instruction) }
+    }
     default:
       throw new SolanaError(SOLANA_ERROR__PROGRAM_CLIENTS__UNRECOGNIZED_INSTRUCTION_TYPE, {
         instructionType: instructionType as string,
@@ -542,6 +642,7 @@ export type NestVaultPluginAccounts = {
   pendingConfig: ReturnType<typeof getPendingConfigCodec> & SelfFetchFunctions<PendingConfigArgs, PendingConfig>
   pendingWithdrawal: ReturnType<typeof getPendingWithdrawalCodec> &
     SelfFetchFunctions<PendingWithdrawalArgs, PendingWithdrawal>
+  stipendPool: ReturnType<typeof getStipendPoolCodec> & SelfFetchFunctions<StipendPoolArgs, StipendPool>
   vault: ReturnType<typeof getVaultCodec> & SelfFetchFunctions<VaultArgs, Vault>
 }
 
@@ -555,6 +656,9 @@ export type NestVaultPluginInstructions = {
   cancelWithdrawal: (
     input: CancelWithdrawalInput,
   ) => ReturnType<typeof getCancelWithdrawalInstruction> & SelfPlanAndSendFunctions
+  claimStipend: (
+    input: ClaimStipendAsyncInput,
+  ) => ReturnType<typeof getClaimStipendInstructionAsync> & SelfPlanAndSendFunctions
   depositSol: (input: DepositSolInput) => ReturnType<typeof getDepositSolInstruction> & SelfPlanAndSendFunctions
   depositToken: (
     input: DepositTokenAsyncInput,
@@ -565,6 +669,9 @@ export type NestVaultPluginInstructions = {
   expediteWithdrawal: (
     input: ExpediteWithdrawalAsyncInput,
   ) => ReturnType<typeof getExpediteWithdrawalInstructionAsync> & SelfPlanAndSendFunctions
+  fundStipend: (
+    input: FundStipendAsyncInput,
+  ) => ReturnType<typeof getFundStipendInstructionAsync> & SelfPlanAndSendFunctions
   guardianHeartbeat: (
     input: GuardianHeartbeatInput,
   ) => ReturnType<typeof getGuardianHeartbeatInstruction> & SelfPlanAndSendFunctions
@@ -582,9 +689,16 @@ export type NestVaultPluginInstructions = {
   requestWithdrawal: (
     input: RequestWithdrawalAsyncInput,
   ) => ReturnType<typeof getRequestWithdrawalInstructionAsync> & SelfPlanAndSendFunctions
+  setupStipend: (
+    input: SetupStipendAsyncInput,
+  ) => ReturnType<typeof getSetupStipendInstructionAsync> & SelfPlanAndSendFunctions
 }
 
-export type NestVaultPluginPdas = { pendingConfig: typeof findPendingConfigPda; vault: typeof findVaultPda }
+export type NestVaultPluginPdas = {
+  pendingConfig: typeof findPendingConfigPda
+  pool: typeof findPoolPda
+  vault: typeof findVaultPda
+}
 
 export type NestVaultPluginRequirements = ClientWithRpc<GetAccountInfoApi & GetMultipleAccountsApi> &
   ClientWithTransactionPlanning &
@@ -597,17 +711,20 @@ export function nestVaultProgram() {
         accounts: {
           pendingConfig: addSelfFetchFunctions(client, getPendingConfigCodec()),
           pendingWithdrawal: addSelfFetchFunctions(client, getPendingWithdrawalCodec()),
+          stipendPool: addSelfFetchFunctions(client, getStipendPoolCodec()),
           vault: addSelfFetchFunctions(client, getVaultCodec()),
         },
         instructions: {
           applyConfig: (input) => addSelfPlanAndSendFunctions(client, getApplyConfigInstructionAsync(input)),
           cancelConfig: (input) => addSelfPlanAndSendFunctions(client, getCancelConfigInstructionAsync(input)),
           cancelWithdrawal: (input) => addSelfPlanAndSendFunctions(client, getCancelWithdrawalInstruction(input)),
+          claimStipend: (input) => addSelfPlanAndSendFunctions(client, getClaimStipendInstructionAsync(input)),
           depositSol: (input) => addSelfPlanAndSendFunctions(client, getDepositSolInstruction(input)),
           depositToken: (input) => addSelfPlanAndSendFunctions(client, getDepositTokenInstructionAsync(input)),
           executeWithdrawal: (input) => addSelfPlanAndSendFunctions(client, getExecuteWithdrawalInstruction(input)),
           expediteWithdrawal: (input) =>
             addSelfPlanAndSendFunctions(client, getExpediteWithdrawalInstructionAsync(input)),
+          fundStipend: (input) => addSelfPlanAndSendFunctions(client, getFundStipendInstructionAsync(input)),
           guardianHeartbeat: (input) => addSelfPlanAndSendFunctions(client, getGuardianHeartbeatInstruction(input)),
           initVault: (input) => addSelfPlanAndSendFunctions(client, getInitVaultInstructionAsync(input)),
           instantWithdraw: (input) => addSelfPlanAndSendFunctions(client, getInstantWithdrawInstructionAsync(input)),
@@ -616,8 +733,9 @@ export function nestVaultProgram() {
           proposeConfig: (input) => addSelfPlanAndSendFunctions(client, getProposeConfigInstructionAsync(input)),
           requestWithdrawal: (input) =>
             addSelfPlanAndSendFunctions(client, getRequestWithdrawalInstructionAsync(input)),
+          setupStipend: (input) => addSelfPlanAndSendFunctions(client, getSetupStipendInstructionAsync(input)),
         },
-        pdas: { pendingConfig: findPendingConfigPda, vault: findVaultPda },
+        pdas: { pendingConfig: findPendingConfigPda, pool: findPoolPda, vault: findVaultPda },
         identifyAccount: identifyNestVaultAccount,
         identifyInstruction: identifyNestVaultInstruction,
         parseInstruction: parseNestVaultInstruction,

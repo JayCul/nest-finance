@@ -7,4 +7,5 @@
  */
 
 export * from './pendingConfig'
+export * from './pool'
 export * from './vault'

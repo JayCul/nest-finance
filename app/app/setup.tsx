@@ -18,7 +18,7 @@ const DELAYS: Record<DelayChoice, { delay: number; lockdown: number }> = {
 }
 
 export default function SetupScreen() {
-  const { account } = useMobileWallet()
+  const { account, disconnect } = useMobileWallet()
   const vault = useVault()
   const { createVault } = useVaultActions()
   const [choice, setChoice] = useState<DelayChoice>('48h')
@@ -132,6 +132,7 @@ export default function SetupScreen() {
         style={{ flex: 0 }}
         onPress={() => router.push('/protect')}
       />
+      <PillButton title="Use a different wallet" variant="outline" style={{ flex: 0 }} onPress={() => disconnect()} />
     </Screen>
   )
 }

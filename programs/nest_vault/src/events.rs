@@ -89,6 +89,27 @@ pub struct ConfigCancelled {
 }
 
 #[event]
+pub struct StipendSetup {
+    pub vault: Pubkey,
+    pub mint: Pubkey,
+    pub rate_per_week: u64,
+}
+
+#[event]
+pub struct StipendFunded {
+    pub vault: Pubkey,
+    pub amount: u64,
+}
+
+#[event]
+pub struct StipendClaimed {
+    pub vault: Pubkey,
+    pub guardian: Pubkey,
+    pub amount: u64,
+    pub at: i64,
+}
+
+#[event]
 pub struct GuardianCheckedIn {
     pub vault: Pubkey,
     pub guardian: Pubkey,

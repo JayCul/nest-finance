@@ -8,4 +8,5 @@
 
 export * from './pendingConfig'
 export * from './pendingWithdrawal'
+export * from './stipendPool'
 export * from './vault'
