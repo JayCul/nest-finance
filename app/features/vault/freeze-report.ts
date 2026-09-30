@@ -4,7 +4,7 @@
 import { Role } from '@/generated/nest-vault'
 import type { DuressLogEntry } from '@/features/security/duress'
 import type { ActivityItem, PendingItem, VaultInfo } from '@/features/vault/use-vault'
-import { formatDuration, formatSol, shortAddress } from '@/utils/format'
+import { formatSol, shortAddress } from '@/utils/format'
 
 export type FreezeReport = {
   frozen: boolean
@@ -102,12 +102,20 @@ function nextStep(r: FreezeReport): string {
   return r.frozen ? 'wait for the freeze to end, or lift it together with a guardian.' : 'nothing, the savings work normally again.'
 }
 
+/** Time left in words the model can repeat: "about 9 minutes", "about 2 hours". */
+function remaining(secs: number): string {
+  if (secs < 90) return 'less than 2 minutes'
+  if (secs < 5400) return `about ${Math.round(secs / 60)} minutes`
+  if (secs < 172800) return `about ${Math.round(secs / 3600)} hours`
+  return `about ${Math.round(secs / 86400)} days`
+}
+
 /** The facts the on-device model is given, one per line, only those true right now. */
 export function reportFacts(r: FreezeReport, now: number): string {
   const who = r.asGuardian ? 'the owner' : 'you'
   const lines = [
     r.asGuardian ? 'You are a guardian of these savings; they belong to someone else, the owner.' : 'These are your savings.',
-    r.by ? `What happened: the savings were frozen by ${r.by.label}${r.at ? ` at ${clock(r.at)}` : ''}.` : 'What happened: the savings were frozen.',
+    r.by ? `The savings were frozen by ${r.by.label}${r.at ? ` at ${clock(r.at)}` : ''}.` : 'The savings were frozen.',
     r.backupPin
       ? `The backup PIN is an emergency PIN for when someone forces ${who} to open the app. It shows an ordinary wallet while the savings freeze quietly.`
       : undefined,
@@ -120,9 +128,9 @@ export function reportFacts(r: FreezeReport, now: number): string {
       ? `The freeze cancelled ${r.voided.length} pending withdrawal${r.voided.length === 1 ? '' : 's'} (${r.voided.map((p) => formatSol(p.amount)).join(', ')}). No money left the savings.`
       : 'No money left the savings.',
     r.frozen
-      ? `Current status: still frozen for ${formatDuration(Math.max(r.until - now, 0))}. Until then nothing can leave the savings, unless the owner and a guardian lift the freeze together.`
-      : `Current status: the freeze ended at ${clock(r.until)}. The savings work normally again.`,
-    `Suggested next step: ${nextStep(r)}`,
+      ? `They are still frozen for ${remaining(r.until - now)}. Until then nothing can leave the savings, unless the owner and a guardian lift the freeze together.`
+      : `The freeze ended at ${clock(r.until)}. The savings work normally again.`,
+    `Next step for the reader: ${nextStep(r)}`,
   ]
   return lines.filter(Boolean).join('\n')
 }
