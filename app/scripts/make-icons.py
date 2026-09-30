@@ -92,4 +92,13 @@ notif = Image.new("RGBA", (96, 96), (255, 255, 255, 0))
 notif.putalpha(n_alpha)
 notif.save(out / "notification-icon.png")
 
-print("wrote icon, favicon, adaptive fg/bg/monochrome, splash-icon, logo-mark, notification-icon to", out)
+# 7. Wallet icon: what wallet approval sheets show (AppConfig.identity). Wallets draw it as is,
+# so round the corners here, drawn at 4x and scaled down for smooth edges.
+size, scale = 256, 4
+round_mask = Image.new("L", (size * scale,) * 2, 0)
+ImageDraw.Draw(round_mask).rounded_rectangle((0, 0, size * scale - 1, size * scale - 1), radius=int(size * scale * 0.225), fill=255)
+wallet = full.resize((size, size), Image.LANCZOS).convert("RGBA")
+wallet.putalpha(round_mask.resize((size, size), Image.LANCZOS))
+wallet.save(out / "wallet-icon.png")
+
+print("wrote icon, favicon, adaptive fg/bg/monochrome, splash-icon, logo-mark, notification-icon, wallet-icon to", out)

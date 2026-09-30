@@ -3,12 +3,13 @@ import { AppIdentity, createSolanaDevnet, SolanaCluster } from '@wallet-ui/react
 export class AppConfig {
   /**
    * Wallets show `icon` resolved against `uri`. Until Nest Finance has its own site, the uri
-   * points at the repo's raw files so the icon loads from app/assets/images/icon.png.
+   * points at the repo's raw files. wallet-icon.png has rounded, transparent corners because
+   * wallets draw the icon as is (icon.png is full-bleed for Android's own launcher mask).
    */
   static identity: AppIdentity = {
     name: 'Nest Finance',
     uri: 'https://raw.githubusercontent.com/JayCul/nest-finance/main/',
-    icon: 'app/assets/images/icon.png',
+    icon: 'app/assets/images/wallet-icon.png',
   }
   static networks: SolanaCluster[] = [createSolanaDevnet({ url: 'https://api.devnet.solana.com' })]
   /** SOL kept in the app's sentinel key so it can pay for a silent lockdown. */
