@@ -22,7 +22,7 @@ Take away the instant. Savings sit in an on-chain vault where every withdrawal w
 
 ## Try it
 
-- **APK (devnet):** [nest-finance-devnet.apk](https://github.com/JayCul/nest-finance/releases/download/v0.1.0-devnet/nest-finance-devnet.apk) from the [release](https://github.com/JayCul/nest-finance/releases/tag/v0.1.0-devnet). Install on a Seeker or any Android device with an MWA wallet.
+- **APK (devnet):** [nest-finance-devnet.apk](https://github.com/JayCul/nest-finance/releases/latest/download/nest-finance-devnet.apk) from the [release](https://github.com/JayCul/nest-finance/releases/latest). Install on a Seeker or any Android device with an MWA wallet.
 - **Demo video:** [watch on YouTube](https://youtube.com/shorts/_GFJuXn5x9o), under 3 minutes, recorded on an Android emulator with touches shown: owner tour, protected withdrawal, backup PIN, guardian alert and cancel. The voiceover script is in [docs/demo-video-script.md](docs/demo-video-script.md).
 - **Pitch deck:** [docs/nest-finance-deck.pdf](docs/nest-finance-deck.pdf), 10 slides.
 - **Verify it yourself:** deployed addresses, build and test steps, proof the devnet program matches this code, and where each feature lives: [docs/verify.md](docs/verify.md).

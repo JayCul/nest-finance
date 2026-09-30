@@ -57,7 +57,7 @@ npx expo prebuild -p android
 cd android && ./gradlew assembleRelease
 ```
 
-On Windows, build from a short path such as `C:\nf\app`; some native modules exceed the 260-character path limit from a deep folder. The release APK is attached to [the GitHub release](https://github.com/JayCul/nest-finance/releases/tag/v0.1.0-devnet). The typed program client in `app/generated/nest-vault` is generated from the committed IDL (`app/idl/nest_vault.json`) with `npm run generate:client`.
+On Windows, build from a short path such as `C:\nf\app`; some native modules exceed the 260-character path limit from a deep folder. The release APK is attached to [the GitHub release](https://github.com/JayCul/nest-finance/releases/latest). The typed program client in `app/generated/nest-vault` is generated from the committed IDL (`app/idl/nest_vault.json`) with `npm run generate:client`.
 
 ## Where each feature lives
 
