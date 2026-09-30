@@ -101,10 +101,12 @@ function RealHome() {
         </BalanceCard>
 
         {frozen ? (
-          <Notice tone="warning">
-            Savings are frozen for {formatCountdown(v.lockdownUntil - now)}. Nothing can leave until then unless you
-            and a guardian lift it together.
-          </Notice>
+          <Pressable onPress={() => router.push('/freeze-report')} style={({ pressed }) => pressed && { opacity: 0.7 }}>
+            <Notice tone="warning">
+              Savings are frozen for {formatCountdown(v.lockdownUntil - now)}. Nothing can leave until then unless you
+              and a guardian lift it together. Tap to see why.
+            </Notice>
+          </Pressable>
         ) : null}
 
         <SectionHeader title="Accounts" action="View All" onAction={() => router.push('/activity')} />

@@ -93,6 +93,16 @@ Both PINs open the same app through the same screen and take the same time. The 
 
 Unlocking later with the real PIN shows what happened in Settings. Practice mode runs the same flow without freezing anything and marks the text as a drill.
 
+## Why is this frozen? (on-device AI)
+
+When savings are frozen, the owner (tap the frozen notice on Home, or the backup-PIN record in Settings) and each guardian (the vault's "Why is this frozen?" button) get a freeze report:
+
+- **The on-chain facts:** who froze it (owner, a guardian, or this phone's backup PIN), when, when it ends, and which pending withdrawals it cancelled, read from the program's lockdown event.
+- **When the backup PIN caused it, the phone's state at that moment:** phone model, system and app version, public IP, GPS coordinates with accuracy, contacts texted, and a link to the freeze transaction. The public IP comes from Cloudflare's trace endpoint (no account or key); everything else is read on the phone. It is all stored on the phone only.
+- **A plain-language explanation written by an AI model running on the phone:** Qwen3 0.6B (4-bit, 397 MB, downloaded once from Hugging Face on first use) through llama.cpp (`llama.rn`). It is given only the facts above and asked to explain the freeze and the one next step.
+
+**Why on-device and not a cloud model.** A cloud API key cannot be kept secret in a public APK: however it is encrypted, the app must decrypt it to use it, so anyone can extract it and bill calls to the owner of the key. And a freeze report holds the owner's location and IP from the moment they were coerced, which should not be sent to a third party. Running the model on the phone removes both problems: no server, no key, and nothing leaves the device. Code: `app/features/ai/on-device.ts`, `app/features/vault/freeze-report.ts`, `app/app/freeze-report.tsx`.
+
 ## Guardians
 
 A guardian uses the same app with their own wallet. There is no invite handshake: the app finds every vault that lists the connected wallet as a guardian by searching the program's accounts at the fixed byte offsets of the three guardian slots.

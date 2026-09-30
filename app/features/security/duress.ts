@@ -16,6 +16,8 @@ import {
   signTransactionMessageWithSigners,
   type SolanaRpcApi,
 } from '@solana/kit'
+import Constants from 'expo-constants'
+import * as Device from 'expo-device'
 import * as Location from 'expo-location'
 import * as SecureStore from 'expo-secure-store'
 import { getLockdownInstruction } from '@/generated/nest-vault'
@@ -34,6 +36,17 @@ export type DuressLogEntry = {
   smsSent: number
   smsError?: string
   location?: string
+  /** The phone's state when the backup PIN was used, for the freeze report. Stays on this phone. */
+  device?: DeviceContext
+}
+
+export type DeviceContext = {
+  model?: string
+  manufacturer?: string
+  os?: string
+  appVersion?: string
+  publicIp?: string
+  coords?: { latitude: number; longitude: number; accuracyMeters?: number }
 }
 
 export async function triggerDuress(params: {
@@ -44,11 +57,12 @@ export async function triggerDuress(params: {
 }): Promise<DuressLogEntry> {
   const entry: DuressLogEntry = { at: Date.now(), drill: params.drill, lockdown: 'skipped', smsSent: 0 }
 
-  // Location is a bonus: never let it hold up the freeze or the text.
-  const location = Promise.race([getLocationLink().catch(() => null), new Promise<null>((r) => setTimeout(() => r(null), 5000))])
+  // Location and the public IP are bonuses: never let them hold up the freeze or the text.
+  const location = Promise.race([getPosition().catch(() => null), new Promise<null>((r) => setTimeout(() => r(null), 5000))])
+  const publicIp = getPublicIp().catch(() => undefined)
   const lockdown = params.drill || !params.vault ? Promise.resolve(null) : silentLockdown(params.rpc, params.owner, params.vault)
 
-  const [lockResult, locationLink] = await Promise.allSettled([lockdown, location])
+  const [lockResult, position] = await Promise.allSettled([lockdown, location])
   if (lockResult.status === 'fulfilled' && lockResult.value) {
     entry.lockdown = 'sent'
     entry.lockdownSignature = lockResult.value
@@ -56,7 +70,16 @@ export async function triggerDuress(params: {
     entry.lockdown = 'failed'
     entry.lockdownError = String(lockResult.reason?.message ?? lockResult.reason)
   }
-  entry.location = locationLink.status === 'fulfilled' ? (locationLink.value ?? undefined) : undefined
+  const coords = position.status === 'fulfilled' ? position.value : null
+  entry.location = coords ? mapsLink(coords) : undefined
+  entry.device = {
+    model: Device.modelName ?? undefined,
+    manufacturer: Device.manufacturer ?? undefined,
+    os: [Device.osName, Device.osVersion].filter(Boolean).join(' ') || undefined,
+    appVersion: Constants.expoConfig?.version,
+    publicIp: await publicIp,
+    coords: coords ?? undefined,
+  }
 
   try {
     entry.smsSent = await alertGuardians(params.drill, entry.location, entry.lockdown === 'sent')
@@ -110,7 +133,25 @@ async function waitForConfirmation(rpc: Rpc<SolanaRpcApi>, signature: string) {
   throw new Error('Lockdown not confirmed in time')
 }
 
-async function getLocationLink(): Promise<string | null> {
+const mapsLink = (c: { latitude: number; longitude: number }) =>
+  `https://maps.google.com/?q=${c.latitude.toFixed(5)},${c.longitude.toFixed(5)}`
+
+/**
+ * The phone's public IP, from Cloudflare's trace endpoint (no account, no key). Capped at 4
+ * seconds. It is recorded on this phone for the freeze report and never sent anywhere else.
+ */
+async function getPublicIp(): Promise<string | undefined> {
+  const abort = new AbortController()
+  const timer = setTimeout(() => abort.abort(), 4000)
+  try {
+    const text = await (await fetch('https://1.1.1.1/cdn-cgi/trace', { signal: abort.signal })).text()
+    return text.match(/^ip=(.+)$/m)?.[1]?.trim()
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+async function getPosition(): Promise<DeviceContext['coords'] | null> {
   const { status } = await Location.getForegroundPermissionsAsync()
   if (status !== 'granted') return null
   // With location services off, any position request can end in a system dialog. Skip it.
@@ -127,8 +168,8 @@ async function getLocationLink(): Promise<string | null> {
       new Promise<null>((r) => setTimeout(() => r(null), 8000)),
     ]))
   if (!position) return null
-  const { latitude, longitude } = position.coords
-  return `https://maps.google.com/?q=${latitude.toFixed(5)},${longitude.toFixed(5)}`
+  const { latitude, longitude, accuracy } = position.coords
+  return { latitude, longitude, accuracyMeters: accuracy ?? undefined }
 }
 
 async function alertGuardians(drill: boolean, location: string | undefined, locked: boolean): Promise<number> {

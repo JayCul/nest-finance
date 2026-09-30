@@ -1,6 +1,6 @@
 import { address } from '@solana/kit'
 import * as Haptics from 'expo-haptics'
-import { useLocalSearchParams } from 'expo-router'
+import { router, useLocalSearchParams } from 'expo-router'
 import React, { useEffect, useState } from 'react'
 import { Alert, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -79,6 +79,16 @@ export default function GuardedVaultScreen() {
             {formatSol(vault.available)} · {frozen ? `Frozen ${formatCountdown(vault.lockdownUntil - now)}` : 'Protected'}
           </Text>
         </BalanceCard>
+
+        {frozen ? (
+          <PillButton
+            title="Why is this frozen?"
+            icon="sparkles-outline"
+            variant="outline"
+            style={{ flex: 0 }}
+            onPress={() => router.push({ pathname: '/freeze-report', params: { vault: vault.address } })}
+          />
+        ) : null}
 
         <SectionHeader title="Withdrawal requests" />
         {live.length === 0 ? <Text style={styles.empty}>No open requests.</Text> : null}

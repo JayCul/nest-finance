@@ -54,6 +54,7 @@ export default function RootLayout() {
         <Stack.Screen name="guardian-code" />
         <Stack.Screen name="scan" />
         <Stack.Screen name="safety" />
+        <Stack.Screen name="freeze-report" />
         <Stack.Screen
           name="move"
           options={{ presentation: 'transparentModal', animation: 'fade', contentStyle: { backgroundColor: 'transparent' } }}

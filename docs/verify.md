@@ -72,5 +72,7 @@ On Windows, build from a short path such as `C:\nf\app`; some native modules exc
 | Withdrawal alerts and one-tap cancel | `app/features/guardian/use-guardian-watcher.ts`, `app/app/guarded/[vault].tsx` |
 | Guardian rewards (SKR) | `app/features/stipend/use-stipend.ts`, `app/components/guardian-rewards.tsx`; see [skr.md](skr.md) |
 | Safety score | `app/features/vault/use-safety-score.ts` |
+| Freeze report: on-chain facts plus device state at the backup PIN | `app/features/vault/freeze-report.ts`, `app/app/freeze-report.tsx`, captured in `app/features/security/duress.ts` |
+| On-device AI explanation (Qwen3 0.6B via llama.cpp, no server) | `app/features/ai/on-device.ts` |
 
 An automated security review and its triage are in [security-review.md](security-review.md).

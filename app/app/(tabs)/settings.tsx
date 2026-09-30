@@ -131,7 +131,23 @@ function RealSettings() {
           />
           <InfoRow label="Location shared" value={lastDuress.location ? 'Yes' : 'No'} />
           {lastDuress.lockdownError || lastDuress.smsError ? (
-            <Notice tone="danger">{[lastDuress.lockdownError, lastDuress.smsError].filter(Boolean).join(' · ')}</Notice>
+            <Notice tone="danger">
+              {[
+                lastDuress.lockdownError && `Freeze: ${friendlyError(lastDuress.lockdownError) ?? 'not sent'}`,
+                lastDuress.smsError && `Text: ${friendlyError(lastDuress.smsError) ?? 'not sent'}`,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
+            </Notice>
+          ) : null}
+          {!lastDuress.drill ? (
+            <PillButton
+              title="See why savings are frozen"
+              icon="sparkles-outline"
+              variant="outline"
+              style={{ flex: 0 }}
+              onPress={() => router.push('/freeze-report')}
+            />
           ) : null}
         </Card>
       ) : null}
