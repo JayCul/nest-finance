@@ -10,7 +10,7 @@ import { skrMint, toSkr, useSkrBalance, useStipend, useStipendActions } from '@/
 import type { VaultInfo } from '@/features/vault/use-vault'
 
 const fmt = (n: number) => n.toLocaleString('en-US', { maximumFractionDigits: 2 })
-// Sized so one Circle faucet request (10 test USDC) covers setup on devnet.
+// Sized so one Circle faucet request (20 test USDC at the time of writing) covers setup and top-ups.
 const TOP_UP = 5
 
 /** Owner side: pay guardians in SKR for staying reachable. */
