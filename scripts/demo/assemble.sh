@@ -26,6 +26,9 @@ for c in "${CUTS[@]}"; do
       -vf "tpad=stop_mode=clone:stop_duration=$hold,scale=1080:2400:force_original_aspect_ratio=decrease,pad=1080:2400:(ow-iw)/2:(oh-ih)/2,fps=30" \
       -c:v libx264 -preset medium -crf 20 -pix_fmt yuv420p -an "$part"
     echo "file '$part'" >> "$list"
+    got=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$part")
+    printf '  %-26s %6s-%-6s at %6.1fs in the video\n' "$name" "$start" "${r#*-}" "${at:-0}"
+    at=$(awk "BEGIN { print ${at:-0} + $got }")
   done
 done
 ffmpeg -v error -y -f concat -safe 0 -i "$list" -c copy nest-finance-demo.mp4
