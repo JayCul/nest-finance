@@ -14,6 +14,25 @@ Built for [Clock In](https://solanamobile.radiant.nexus/), the Solana Mobile hac
 
 The demo vault uses a 2-minute delay so a withdrawal can finish on camera. Real vaults choose 24 hours to 7 days.
 
+## For judges
+
+No account or sign-up. Your wallet is your identity, and PINs stay on the phone. Everything runs on Solana devnet, so nothing costs real money.
+
+1. **Wallet.** Use any Mobile Wallet Adapter wallet that can sign on devnet. Most wallets have a devnet or testnet switch in their settings.
+2. **Install and connect.** Install the APK, open Nest Finance and tap **Connect wallet**.
+3. **Get test SOL.** If your wallet is nearly empty, Home shows **Get free test SOL**. Tap **Copy address and open faucet**, paste the address on faucet.solana.com, request an airdrop, and come back. The balance updates when you return. Creating protected savings costs about 0.015 SOL.
+4. **Create protected savings.** Tap **Start protected savings**. **Demo** timers are selected by default (withdrawals wait 2 minutes, a freeze lasts 10), so you can watch a withdrawal finish. Approve one transaction in your wallet.
+5. **Set up the backup PIN.** Home prompts you. Pick a real PIN, a backup PIN and an emergency contact, then allow texts and location. **Practice now** runs the backup PIN without freezing anything.
+6. **Try it.** Deposit, request a withdrawal and cancel it. Then lock the app (Settings, Lock app) and open it with the backup PIN: you'll see the spending-only view while your savings freeze.
+
+**Guardian mode** needs a second wallet. Put its address in the Guardian field when creating savings (or add it later, which waits the delay). Then connect that wallet, on another phone or on the same one via Settings, Disconnect, and it finds the vaults it protects automatically.
+
+**Worth knowing**
+
+- The emergency text needs a SIM. Without one, the freeze still happens and Settings records the text as failed.
+- Guardian rewards use a devnet stand-in for SKR, since SKR doesn't exist on devnet. The demo video shows them working.
+- Devnet can be slow or rate-limited at times. Pull down to refresh any screen.
+
 ## Why
 
 Crypto holders are increasingly targeted in person, and a Seeker in your hand tells people you hold crypto. Hardware wallets and seed phrases don't help when someone is standing next to you. Nest Finance makes that encounter pointless: even with your real key and your real PIN, an attacker cannot move your savings faster than the delay allows.

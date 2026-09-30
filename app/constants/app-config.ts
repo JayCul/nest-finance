@@ -14,6 +14,11 @@ export class AppConfig {
   /** SOL kept in the app's sentinel key so it can pay for a silent lockdown. */
   static sentinelFundingLamports = 10_000_000n
   static explorerCluster = 'devnet'
+  /** Devnet build: offers the SOL faucet and defaults new vaults to demo timers. */
+  static isDevnet = true
+  static faucetUrl = 'https://faucet.solana.com'
+  /** Below this the faucet prompt shows. Creating a vault costs about 0.02 SOL including the sentinel's float. */
+  static lowSolLamports = 50_000_000n
   /** Circle's devnet USDC. Mainnet: EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v */
   static usdcMint = '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU'
   /**

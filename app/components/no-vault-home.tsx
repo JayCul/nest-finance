@@ -2,9 +2,11 @@ import { Ionicons } from '@expo/vector-icons'
 import { useMobileWallet } from '@wallet-ui/react-native-kit'
 import { router } from 'expo-router'
 import React from 'react'
-import { Image, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { BalanceCard } from '@/components/balance-card'
+import { PullRefresh } from '@/components/pull-refresh'
+import { TestSolCard } from '@/components/test-sol-card'
 import { ListRow, Money, PillButton, SectionHeader } from '@/components/ui'
 import { colors, fonts, radius, space } from '@/constants/theme'
 import { useGuardedVaults } from '@/features/guardian/use-guardian'
@@ -27,7 +29,7 @@ export function NoVaultHome() {
     <SafeAreaView style={styles.screen} edges={['top']}>
       <ScrollView
         contentContainerStyle={styles.scroll}
-        refreshControl={<RefreshControl refreshing={guarded.isRefetching} onRefresh={() => guarded.refetch()} tintColor={colors.primary} />}
+        refreshControl={<PullRefresh onRefresh={() => Promise.all([guarded.refetch(), wallet.refetch()])} />}
       >
         <BalanceCard
           label="Wallet balance"
@@ -49,6 +51,8 @@ export function NoVaultHome() {
           <Money usd={usd(lamportsToSol(wallet.data ?? 0n), price.data)} color={colors.textOnPrimary} size={34} />
           <Text style={styles.sub}>{formatSol(wallet.data ?? 0n)}</Text>
         </BalanceCard>
+
+        <TestSolCard />
 
         <Pressable style={styles.explain} onPress={() => router.push('/setup')}>
           <Ionicons name="time-outline" size={20} color={colors.primaryDark} />

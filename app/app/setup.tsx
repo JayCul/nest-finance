@@ -3,7 +3,9 @@ import { useMobileWallet } from '@wallet-ui/react-native-kit'
 import { Redirect, router } from 'expo-router'
 import React, { useState } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
+import { TestSolCard } from '@/components/test-sol-card'
 import { Card, Field, InfoRow, Notice, PillButton, Screen, Segmented } from '@/components/ui'
+import { AppConfig } from '@/constants/app-config'
 import { colors, fonts, space } from '@/constants/theme'
 import { useVault, useVaultActions } from '@/features/vault/use-vault'
 import { formatDuration } from '@/utils/format'
@@ -21,7 +23,8 @@ export default function SetupScreen() {
   const { account, disconnect } = useMobileWallet()
   const vault = useVault()
   const { createVault } = useVaultActions()
-  const [choice, setChoice] = useState<DelayChoice>('48h')
+  // Devnet builds start on demo timers so a withdrawal can be watched end to end.
+  const [choice, setChoice] = useState<DelayChoice>(AppConfig.isDevnet ? 'demo' : '48h')
   const [guardian, setGuardian] = useState('')
   const [safe, setSafe] = useState('')
   const [busy, setBusy] = useState(false)
@@ -76,7 +79,9 @@ export default function SetupScreen() {
         <InfoRow label="Withdrawals wait" value={formatDuration(delay)} />
         <InfoRow label="Emergency freeze lasts" value={formatDuration(lockdown)} />
         {choice === 'demo' ? (
-          <Notice tone="warning">Demo mode uses short timers for testing. Use 24 hours or more for real savings.</Notice>
+          <Notice tone="warning">
+            Demo timers let you watch a withdrawal finish in 2 minutes. Use 24 hours or more for real savings.
+          </Notice>
         ) : null}
       </Card>
 
@@ -112,6 +117,8 @@ export default function SetupScreen() {
           hint={safeOk ? undefined : 'That does not look like a Solana address.'}
         />
       </Card>
+
+      <TestSolCard />
 
       {error ? <Notice tone="danger">{error}</Notice> : null}
 
