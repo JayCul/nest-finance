@@ -6,11 +6,25 @@ Nest Finance is a savings app for Solana Mobile (Seeker). It looks like an ordin
 
 Built for [Clock In](https://solanamobile.radiant.nexus/), the Solana Mobile hackathon.
 
+## The problem
+
+**Whoever controls your unlocked phone controls your crypto, instantly.**
+
+- **Forced unlocks.** Crypto holders are targeted in person: robbed, threatened or coerced into opening their wallet. A Seeker in your hand tells people you hold crypto. Seed phrases, hardware wallets and biometrics protect against remote theft, not against someone standing next to you.
+- **One bad signature.** A drainer needs a single approval to empty a wallet, and phishing and malicious dApps make that approval easy to trick out of anyone.
+- **No time to react.** On-chain transfers are final in seconds. By the time anyone notices, the money is gone, and there is nobody to call.
+
+Every mainstream wallet treats the key holder as the owner, so any of these ends the same way.
+
+## The solution
+
+Take away the instant. Savings sit in an on-chain vault where every withdrawal waits a delay you choose, and you or someone you trust can cancel it in that window. If you are forced to open the app, a backup PIN shows an ordinary wallet while the savings freeze and your emergency contact is alerted. Even with your real key and your real PIN, nobody can move your savings faster than the delay allows.
+
 ## Try it
 
-- **APK (devnet):** attached to the GitHub release. Install on a Seeker or any Android device with an MWA wallet.
-- **Demo video:** under 3 minutes, recorded on an Android emulator with touches shown: owner tour, protected withdrawal, backup PIN, guardian alert and cancel. The voiceover script is in [docs/demo-video-script.md](docs/demo-video-script.md).
-- **Pitch deck:** 10 slides with speaker notes.
+- **APK (devnet):** [nest-finance-devnet.apk](https://github.com/JayCul/nest-finance/releases/download/v0.1.0-devnet/nest-finance-devnet.apk) from the [release](https://github.com/JayCul/nest-finance/releases/tag/v0.1.0-devnet). Install on a Seeker or any Android device with an MWA wallet.
+- **Demo video:** [watch on YouTube](https://youtube.com/shorts/_GFJuXn5x9o), under 3 minutes, recorded on an Android emulator with touches shown: owner tour, protected withdrawal, backup PIN, guardian alert and cancel. The voiceover script is in [docs/demo-video-script.md](docs/demo-video-script.md).
+- **Pitch deck:** [docs/nest-finance-deck.pdf](docs/nest-finance-deck.pdf), 10 slides.
 - **Verify it yourself:** deployed addresses, build and test steps, proof the devnet program matches this code, and where each feature lives: [docs/verify.md](docs/verify.md).
 - **SKR integration and mainnet path:** [docs/skr.md](docs/skr.md). Security review triage: [docs/security-review.md](docs/security-review.md).
 
@@ -34,12 +48,6 @@ No account or sign-up. Your wallet is your identity, and PINs stay on the phone.
 - The emergency text needs a SIM. Without one, the freeze still happens and Settings records the text as failed.
 - **Guardian rewards** pay in SKR on mainnet. SKR doesn't exist on devnet, so this build uses Circle's devnet USDC as the stand-in. To try rewards, open People, tap **Get free test tokens** (it copies your address and opens faucet.circle.com), choose Solana Devnet, paste, and request USDC. One request covers the default 5-token pool.
 - Devnet can be slow or rate-limited at times. Pull down to refresh any screen.
-
-## Why
-
-Crypto holders are increasingly targeted in person, and a Seeker in your hand tells people you hold crypto. Hardware wallets and seed phrases don't help when someone is standing next to you. Nest Finance makes that encounter pointless: even with your real key and your real PIN, an attacker cannot move your savings faster than the delay allows.
-
-The same rule stops wallet drainers. A malicious signature can only queue a delayed withdrawal, which you cancel from a notification.
 
 ## How the vault works
 
