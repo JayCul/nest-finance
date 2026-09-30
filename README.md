@@ -30,7 +30,7 @@ No account or sign-up. Your wallet is your identity, and PINs stay on the phone.
 **Worth knowing**
 
 - The emergency text needs a SIM. Without one, the freeze still happens and Settings records the text as failed.
-- Guardian rewards use a devnet stand-in for SKR, since SKR doesn't exist on devnet. The demo video shows them working.
+- **Guardian rewards** pay in SKR on mainnet. SKR doesn't exist on devnet, so this build uses Circle's devnet USDC as the stand-in. To try rewards, open People, tap **Get free test tokens** (it copies your address and opens faucet.circle.com), choose Solana Devnet, paste, and request USDC. One request covers the default 5-token pool.
 - Devnet can be slow or rate-limited at times. Pull down to refresh any screen.
 
 ## Why

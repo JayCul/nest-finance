@@ -1,5 +1,7 @@
 // Guardian rewards in SKR: the owner funds a stipend pool, guardians collect it when they
 // check in. The program caps each claim at 8 days, so missing weekly check-ins forfeits pay.
+// New pools use AppConfig.skrMint (a devnet stand-in on devnet); each pool records its own token,
+// and top-ups, claims and balances follow that.
 
 import { address, type Address, getAddressEncoder, getProgramDerivedAddress } from '@solana/kit'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -19,6 +21,7 @@ const ATA_PROGRAM = address('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL')
 const WEEK_SECS = 7 * 24 * 60 * 60
 const MAX_ACCRUAL_SECS = 8 * 24 * 60 * 60
 
+/** Token for new pools. */
 export const skrMint = address(AppConfig.skrMint)
 export const toSkr = (units: bigint | number) => Number(units) / 10 ** AppConfig.skrDecimals
 export const fromSkr = (skr: number) => BigInt(Math.round(skr * 10 ** AppConfig.skrDecimals))
@@ -34,6 +37,7 @@ export async function ataOf(owner: Address, mint: Address = skrMint) {
 
 export type StipendInfo = {
   pool: Address
+  mint: Address
   ratePerWeek: bigint
   balance: bigint
   claims: { guardian: Address; lastClaim: number }[]
@@ -57,6 +61,7 @@ export function useStipend(vault: Address | undefined) {
         .catch(() => 0n)
       return {
         pool,
+        mint: account.data.mint,
         ratePerWeek: account.data.ratePerWeek,
         balance,
         claims: account.data.claims.map((c) => ({ guardian: c.guardian, lastClaim: Number(c.lastClaim) })),
@@ -73,15 +78,16 @@ export function accruedFor(stipend: StipendInfo, guardian: Address, now: number)
   return accrued < stipend.balance ? accrued : stipend.balance
 }
 
-export function useSkrBalance() {
+/** The connected wallet's balance of a reward token (new pools' token by default). */
+export function useSkrBalance(mint: Address = skrMint) {
   const { account, client } = useMobileWallet()
   return useQuery({
-    queryKey: ['skr-balance', account?.address],
+    queryKey: ['skr-balance', account?.address, mint],
     enabled: !!account,
     refetchInterval: 30_000,
     queryFn: async () =>
       client.rpc
-        .getTokenAccountBalance(await ataOf(account!.address))
+        .getTokenAccountBalance(await ataOf(account!.address, mint))
         .send()
         .then((r) => BigInt(r.value.amount))
         .catch(() => 0n),
@@ -112,15 +118,15 @@ export function useStipendActions() {
       return sig
     },
 
-    async topUp(vault: Address, amountSkr: number) {
+    async topUp(vault: Address, mint: Address, amountSkr: number) {
       const sig = await send(async (funder) => {
         const [pool] = await findPoolPda({ vault })
         return [
           await getFundStipendInstructionAsync({
             funder,
             pool,
-            mint: skrMint,
-            funderToken: await ataOf(funder.address),
+            mint,
+            funderToken: await ataOf(funder.address, mint),
             amount: fromSkr(amountSkr),
           }),
         ]
@@ -130,8 +136,8 @@ export function useStipendActions() {
     },
 
     /** Guardian: check in and collect. */
-    async claim(vault: Address) {
-      const sig = await send(async (guardian) => [await getClaimStipendInstructionAsync({ guardian, vault, mint: skrMint })])
+    async claim(vault: Address, mint: Address) {
+      const sig = await send(async (guardian) => [await getClaimStipendInstructionAsync({ guardian, vault, mint })])
       await refresh()
       return sig
     },

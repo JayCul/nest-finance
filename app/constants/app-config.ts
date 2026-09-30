@@ -22,9 +22,12 @@ export class AppConfig {
   /** Circle's devnet USDC. Mainnet: EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v */
   static usdcMint = '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU'
   /**
-   * Token used for guardian rewards. SKR doesn't exist on devnet, so this is a 6-decimal
-   * devnet stand-in created by scripts/create-test-skr.mjs. On mainnet: the SKR mint.
+   * Token for new guardian reward pools. SKR doesn't exist on devnet, so the devnet build uses
+   * Circle's devnet USDC, which anyone can get from faucet.circle.com. On mainnet: the SKR mint.
+   * Existing pools keep the token they were created with (the pool account records it), such as
+   * the earlier stand-in HYbj4Vt96vUAdseQ4D8qQyE1jds3pfwKrnVpL7AUvvtZ.
    */
-  static skrMint = 'HYbj4Vt96vUAdseQ4D8qQyE1jds3pfwKrnVpL7AUvvtZ'
+  static skrMint = '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU'
   static skrDecimals = 6
+  static skrFaucetUrl = 'https://faucet.circle.com'
 }

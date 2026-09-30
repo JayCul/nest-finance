@@ -123,7 +123,9 @@ export default function GuardedVaultScreen() {
             loading={busy === 'checkin'}
             style={{ flex: 0 }}
             onPress={() =>
-              run('checkin', () => (stipend.data ? stipendActions.claim(vault.address) : actions.checkIn(vault.address)))
+              run('checkin', () =>
+                stipend.data ? stipendActions.claim(vault.address, stipend.data.mint) : actions.checkIn(vault.address),
+              )
             }
           />
           <PillButton
