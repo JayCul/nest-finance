@@ -2,7 +2,7 @@
 // Simulates what a drainer or a coerced signature elsewhere would do, so the guardian's
 // alerts and cancel flow can be tested.
 //
-// Usage: node scripts/owner-request.mjs <owner-keypair.json> <amountSol> <destination> [rpcUrl]
+// Usage: node scripts/owner-request.mjs <owner-key-file> <amountSol> <destination> [rpcUrl]
 
 import {
   AccountRole,
@@ -26,7 +26,7 @@ import { readFileSync } from 'node:fs'
 
 const [keyPath, amountSol, destination, rpcUrl = 'https://api.devnet.solana.com'] = process.argv.slice(2)
 if (!keyPath || !amountSol || !destination) {
-  console.error('usage: node scripts/owner-request.mjs <owner-keypair.json> <amountSol> <destination> [rpcUrl]')
+  console.error('usage: node scripts/owner-request.mjs <owner-key-file> <amountSol> <destination> [rpcUrl]')
   process.exit(1)
 }
 

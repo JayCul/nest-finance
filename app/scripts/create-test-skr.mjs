@@ -1,7 +1,7 @@
 // Devnet only: creates a 6-decimal token standing in for SKR (which doesn't exist on devnet)
 // and mints some to a wallet. Prints the mint address for constants/app-config.ts.
 //
-// Usage: node scripts/create-test-skr.mjs <payer-keypair.json> <recipient> [amount] [rpcUrl]
+// Usage: node scripts/create-test-skr.mjs <payer-key-file> <recipient> [amount] [rpcUrl]
 
 import {
   AccountRole,
@@ -26,7 +26,7 @@ import { readFileSync } from 'node:fs'
 
 const [keyPath, recipientArg, amountArg = '10000', rpcUrl = 'https://api.devnet.solana.com'] = process.argv.slice(2)
 if (!keyPath || !recipientArg) {
-  console.error('usage: node scripts/create-test-skr.mjs <payer-keypair.json> <recipient> [amount] [rpcUrl]')
+  console.error('usage: node scripts/create-test-skr.mjs <payer-key-file> <recipient> [amount] [rpcUrl]')
   process.exit(1)
 }
 
