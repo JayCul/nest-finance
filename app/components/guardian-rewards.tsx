@@ -5,6 +5,7 @@ import { useMobileWallet } from '@wallet-ui/react-native-kit'
 import { Card, Field, IconCircle, InfoRow, Notice, PillButton } from '@/components/ui'
 import { AppConfig } from '@/constants/app-config'
 import { colors, fonts, space } from '@/constants/theme'
+import { friendlyError } from '@/features/errors'
 import { useFaucet } from '@/features/faucet'
 import { skrMint, toSkr, useSkrBalance, useStipend, useStipendActions } from '@/features/stipend/use-stipend'
 import type { VaultInfo } from '@/features/vault/use-vault'
@@ -33,7 +34,7 @@ export function GuardianRewards({ vault }: { vault: VaultInfo }) {
       await fn()
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
+      setError(friendlyError(e))
     } finally {
       setBusy(false)
     }

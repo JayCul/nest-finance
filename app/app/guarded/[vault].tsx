@@ -9,6 +9,7 @@ import { BalanceCard } from '@/components/balance-card'
 import { Card, InfoRow, ListRow, Notice, PillButton, ScreenHeader, SectionHeader } from '@/components/ui'
 import { colors, fonts, radius, space } from '@/constants/theme'
 import { Role } from '@/generated/nest-vault'
+import { friendlyError } from '@/features/errors'
 import { useGuardedVault, useGuardianActions, useNickname } from '@/features/guardian/use-guardian'
 import { useChainNow, useSolPrice } from '@/features/vault/use-vault'
 import { useMobileWallet } from '@wallet-ui/react-native-kit'
@@ -52,7 +53,7 @@ export default function GuardedVaultScreen() {
       await fn()
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
+      setError(friendlyError(e))
     } finally {
       setBusy(null)
     }

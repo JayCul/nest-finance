@@ -2,6 +2,7 @@ import { isAddress } from '@solana/kit'
 import * as Haptics from 'expo-haptics'
 import { router, useFocusEffect } from 'expo-router'
 import React, { useCallback, useState } from 'react'
+import { friendlyError } from '@/features/errors'
 import { takeScannedGuardian } from '@/features/guardian/guardian-code'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -118,7 +119,7 @@ export default function SettingsEditScreen() {
               Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
               router.back()
             } catch (e) {
-              setError(e instanceof Error ? e.message : String(e))
+              setError(friendlyError(e))
             } finally {
               setBusy(false)
             }

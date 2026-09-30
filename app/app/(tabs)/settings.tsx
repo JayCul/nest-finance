@@ -1,4 +1,5 @@
 import { DecoySettings } from '@/components/decoy'
+import { friendlyError } from '@/features/errors'
 import { useIsDuress } from '@/features/security/session'
 import { Ionicons } from '@expo/vector-icons'
 import { useMobileWallet } from '@wallet-ui/react-native-kit'
@@ -69,7 +70,7 @@ function RealSettings() {
       await fn()
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
+      setError(friendlyError(e))
     } finally {
       setBusy(null)
     }

@@ -7,6 +7,7 @@ import { TestSolCard } from '@/components/test-sol-card'
 import { Card, Field, InfoRow, Notice, PillButton, Screen, Segmented } from '@/components/ui'
 import { AppConfig } from '@/constants/app-config'
 import { colors, fonts, space } from '@/constants/theme'
+import { friendlyError } from '@/features/errors'
 import { useVault, useVaultActions } from '@/features/vault/use-vault'
 import { formatDuration } from '@/utils/format'
 
@@ -49,7 +50,7 @@ export default function SetupScreen() {
       })
       router.replace('/')
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
+      setError(friendlyError(e))
     } finally {
       setBusy(false)
     }

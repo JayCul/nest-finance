@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { BalanceCard } from '@/components/balance-card'
 import { Card, InfoRow, Money, Notice, PillButton, ScreenHeader } from '@/components/ui'
 import { colors, fonts, radius, space } from '@/constants/theme'
+import { friendlyError } from '@/features/errors'
 import { useSolPrice, useVault, useVaultActions, useWalletBalance } from '@/features/vault/use-vault'
 import { formatDuration, formatSol, lamportsToSol, solToLamports, usd } from '@/utils/format'
 
@@ -86,7 +87,7 @@ export default function DepositScreen() {
               Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
               router.back()
             } catch (e) {
-              setError(e instanceof Error ? e.message : String(e))
+              setError(friendlyError(e))
             } finally {
               setBusy(false)
             }

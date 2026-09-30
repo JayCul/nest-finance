@@ -4,6 +4,7 @@
 import { sha256 } from '@noble/hashes/sha2.js'
 import { bytesToHex, utf8ToBytes } from '@noble/hashes/utils.js'
 import * as SecureStore from 'expo-secure-store'
+import { UserError } from '@/features/errors'
 
 const PINS_KEY = 'nest.pins.v1'
 const CONTACTS_KEY = 'nest.guardian-contacts.v1'
@@ -28,7 +29,7 @@ export async function hasPins() {
 }
 
 export async function savePins(realPin: string, duressPin: string) {
-  if (realPin === duressPin) throw new Error('The two PINs must be different.')
+  if (realPin === duressPin) throw new UserError('The two PINs must be different.')
   const saltBytes = new Uint8Array(16)
   crypto.getRandomValues(saltBytes)
   const salt = bytesToHex(saltBytes)

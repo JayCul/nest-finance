@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Card, InfoRow, Notice, PillButton, ScreenHeader } from '@/components/ui'
 import { AppConfig } from '@/constants/app-config'
 import { colors, fonts, radius, shadow, space } from '@/constants/theme'
+import { friendlyError } from '@/features/errors'
 import { useChainNow, usePendingWithdrawals, useVault, useVaultActions } from '@/features/vault/use-vault'
 import { formatCountdown, formatDuration, formatSol, formatWhen, shortAddress } from '@/utils/format'
 
@@ -54,7 +55,7 @@ export default function PendingWithdrawalScreen() {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
       router.back()
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
+      setError(friendlyError(e))
     } finally {
       setBusy(null)
     }

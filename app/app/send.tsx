@@ -6,6 +6,7 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Card, Field, InfoRow, Notice, PillButton, ScreenHeader } from '@/components/ui'
 import { colors, fonts, radius, space } from '@/constants/theme'
+import { friendlyError } from '@/features/errors'
 import { useSolPrice, useWalletBalance } from '@/features/vault/use-vault'
 import { useSendSol } from '@/features/wallet/use-wallet'
 import { formatSol, lamportsToSol, solToLamports, usd } from '@/utils/format'
@@ -86,7 +87,7 @@ export default function SendScreen() {
               Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
               router.back()
             } catch (e) {
-              setError(e instanceof Error ? e.message : String(e))
+              setError(friendlyError(e))
             } finally {
               setBusy(false)
             }

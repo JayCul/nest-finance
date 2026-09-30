@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { PinPad } from '@/components/pin-pad'
 import { Card, Field, IconCircle, type IconName, InfoRow, Notice, PillButton, ScreenHeader } from '@/components/ui'
 import { colors, fonts, space } from '@/constants/theme'
+import { friendlyError } from '@/features/errors'
 import { type GuardianContact, loadContacts, saveContacts, savePins } from '@/features/security/security-store'
 import { useSecurity } from '@/features/security/session'
 import { NestSms } from '@/modules/nest-sms'
@@ -67,7 +68,7 @@ export default function SecuritySetupScreen() {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
       setStep('done')
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
+      setError(friendlyError(e))
     } finally {
       setBusy(false)
     }

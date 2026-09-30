@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { Card, Field, InfoRow, Notice, PillButton, ScreenHeader, Segmented } from '@/components/ui'
 import { colors, fonts, radius, shadow, space } from '@/constants/theme'
+import { friendlyError } from '@/features/errors'
 import { useChainNow, useSolPrice, useVault, useVaultActions } from '@/features/vault/use-vault'
 import { formatDuration, formatSol, formatWhen, lamportsToSol, shortAddress, solToLamports, usd } from '@/utils/format'
 
@@ -50,7 +51,7 @@ export default function WithdrawScreen() {
         router.replace({ pathname: '/withdrawal/[address]', params: { address: pending } })
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
+      setError(friendlyError(e))
     } finally {
       setBusy(false)
     }

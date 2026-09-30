@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { BalanceCard } from '@/components/balance-card'
 import { Notice, PillButton } from '@/components/ui'
 import { colors, fonts, radius, space } from '@/constants/theme'
+import { friendlyError } from '@/features/errors'
 
 const POINTS: { icon: React.ComponentProps<typeof Ionicons>['name']; title: string; body: string }[] = [
   { icon: 'time-outline', title: 'Every withdrawal waits', body: 'Savings leave only after a delay you choose.' },
@@ -62,7 +63,7 @@ export default function ConnectScreen() {
             try {
               await connect()
             } catch (e) {
-              setError(e instanceof Error ? e.message : 'Could not connect to a wallet.')
+              setError(friendlyError(e))
             } finally {
               setBusy(false)
             }

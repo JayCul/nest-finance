@@ -56,6 +56,7 @@ import {
 import { AppConfig } from '@/constants/app-config'
 import { getOrCreateSentinel } from './sentinel'
 import { markLocalWithdrawal } from './local-withdrawals'
+import { UserError } from '@/features/errors'
 
 export const NATIVE_SOL = address('11111111111111111111111111111111')
 const SYSTEM_PROGRAM = address('11111111111111111111111111111111')
@@ -432,7 +433,7 @@ function parseEventLine(b64: string): Omit<ActivityItem, 'signature' | 'blockTim
 export function useSend() {
   const { account, client, getTransactionSigner } = useMobileWallet()
   return async function send(build: (signer: TransactionSigner) => Promise<Instruction[]> | Instruction[]) {
-    if (!account) throw new Error('Connect a wallet first.')
+    if (!account) throw new UserError('Connect a wallet first.')
     const { value: blockhash, context } = await client.rpc.getLatestBlockhash({ commitment: 'confirmed' }).send()
     const signer = getTransactionSigner(account.address, context.slot)
     const instructions = await build(signer)
@@ -519,7 +520,7 @@ export function useVaultActions() {
 
   return {
     async createVault(settings: VaultSettings) {
-      if (!account) throw new Error('Connect a wallet first.')
+      if (!account) throw new UserError('Connect a wallet first.')
       const sentinel = await getOrCreateSentinel(account.address)
       return run(() =>
         send(async (owner) => [
@@ -545,7 +546,7 @@ export function useVaultActions() {
 
     async requestWithdrawal(lamports: bigint, destination: string) {
       const vault = await fetchMaybeVault(client.rpc, vaultAddress!)
-      if (!vault.exists) throw new Error('Vault not found.')
+      if (!vault.exists) throw new UserError('Vault not found.')
       const id = vault.data.nextWithdrawalId
       const pending = await pendingWithdrawalAddress(vaultAddress!, id)
       markLocalWithdrawal(pending)
