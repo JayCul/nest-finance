@@ -75,4 +75,8 @@ On Windows, build from a short path such as `C:\nf\app`; some native modules exc
 | Freeze report: on-chain facts plus device state at the backup PIN | `app/features/vault/freeze-report.ts`, `app/app/freeze-report.tsx`, captured in `app/features/security/duress.ts` |
 | On-device AI explanation (Qwen3 0.6B via llama.cpp, no server) | `app/features/ai/on-device.ts` |
 
+## See the freeze report and on-device AI
+
+A separate clip shows it on the emulator: [freeze-report-demo.mp4](https://github.com/JayCul/nest-finance/releases/latest/download/freeze-report-demo.mp4). To check it yourself on a phone, follow step 7 of "For judges" in the README. Once the model is downloaded, the explanation needs no network: `askOnDevice` in `app/features/ai/on-device.ts` calls only the local llama.cpp context, and the only network request in the feature is the model download itself.
+
 An automated security review and its triage are in [security-review.md](security-review.md).
