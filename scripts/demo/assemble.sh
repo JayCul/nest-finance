@@ -18,8 +18,12 @@ for c in "${CUTS[@]}"; do
     n=$((n + 1)); part=$(printf 'part-%02d.mp4' "$n")
     # Re-encode each part to the same size, rate and codec so the concat is seamless.
     start=${r%-*}; dur=$(awk "BEGIN { print ${r#*-} - $start }")
+    # screenrecord writes no frames while the screen is still, so a clip can end early.
+    # A range past the end holds the last frame for the difference.
+    len=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$name.mp4")
+    hold=$(awk "BEGIN { h = ${r#*-} - $len; print (h > 0 ? h : 0) }")
     ffmpeg -v error -y -ss "$start" -i "$name.mp4" -t "$dur" \
-      -vf "scale=1080:2400:force_original_aspect_ratio=decrease,pad=1080:2400:(ow-iw)/2:(oh-ih)/2,fps=30" \
+      -vf "tpad=stop_mode=clone:stop_duration=$hold,scale=1080:2400:force_original_aspect_ratio=decrease,pad=1080:2400:(ow-iw)/2:(oh-ih)/2,fps=30" \
       -c:v libx264 -preset medium -crf 20 -pix_fmt yuv420p -an "$part"
     echo "file '$part'" >> "$list"
   done

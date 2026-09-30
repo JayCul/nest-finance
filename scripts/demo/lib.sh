@@ -26,7 +26,8 @@ wallet_up() { adb shell dumpsys activity activities | grep -q "topResumedActivit
 approve() {
   for i in 1 2 3 4 5 6; do wallet_up && break; sleep 1; done
   if ! wallet_up && [ -n "$LAST_TAP" ]; then adb shell input tap $LAST_TAP; for i in 1 2 3 4 5 6; do wallet_up && break; sleep 1; done; fi
-  pause 2; tap 814 2190; pause "${1:-12}"
+  # Fixed spot: uiautomator can't read the wallet sheet. The pause lets the app icon load on camera.
+  pause 5; tap 814 2190; pause "${1:-12}"
 }
 pin() { bash "$ROOT/scripts/pin.sh" "$1" "${2:-109}"; pause 3; }
 

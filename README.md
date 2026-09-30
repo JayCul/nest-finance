@@ -9,7 +9,7 @@ Built for [Clock In](https://solanamobile.radiant.nexus/), the Solana Mobile hac
 ## Try it
 
 - **APK (devnet):** attached to the GitHub release. Install on a Seeker or any Android device with an MWA wallet.
-- **Demo video:** 2.5 minutes, recorded on an Android emulator with touches shown: owner tour, protected withdrawal, backup PIN, guardian alert and cancel. The voiceover script is in [docs/demo-video-script.md](docs/demo-video-script.md).
+- **Demo video:** under 3 minutes, recorded on an Android emulator with touches shown: owner tour, protected withdrawal, backup PIN, guardian alert and cancel. The voiceover script is in [docs/demo-video-script.md](docs/demo-video-script.md).
 - **Pitch deck:** 10 slides with speaker notes.
 
 The demo vault uses a 2-minute delay so a withdrawal can finish on camera. Real vaults choose 24 hours to 7 days.

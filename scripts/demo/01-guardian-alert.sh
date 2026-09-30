@@ -5,6 +5,7 @@ source "$(dirname "$0")/lib.sh"
 OWNER_KEY='\\wsl.localhost\Ubuntu\home\jaycul\.config\solana\nest-dev-owner.json'
 
 wallet_auth
+adb shell am start -a android.intent.action.VIEW -d "nestfinance://" com.nestfinance.app >/dev/null 2>&1; pause 2   # start on Home
 # Clear old alerts so the new one sits at the top of the shade.
 adb shell cmd statusbar expand-notifications; pause 1.5
 bash "$ROOT/scripts/ui.sh" tap "Clear all notifications" >/dev/null 2>&1; pause 1

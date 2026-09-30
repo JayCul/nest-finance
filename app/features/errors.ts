@@ -42,7 +42,7 @@ const lowSol = AppConfig.isDevnet
 export function friendlyError(e: unknown): string | null {
   if (e instanceof UserError) return e.message
   const text = describe(e)
-  if (__DEV__) console.warn('[nest] error:', text)
+  console.warn('[nest] error:', text)
 
   // Cancelled or declined in the wallet.
   if (/cancellationexception|association_cancelled|authorization_failed|not_signed|user (rejected|declined|cancel)|request (was )?(rejected|declined|cancel)|cancel+ed by (the )?user|"code":-[13]\b/i.test(text)) {
@@ -71,6 +71,10 @@ export function friendlyError(e: unknown): string | null {
   }
   if (/network request failed|failed to fetch|fetch failed|too many requests|\b429\b|econn|enotfound|socket|http error|timeout/i.test(text)) {
     return "Can't reach Solana right now. Check your connection and try again."
+  }
+  // The wallet rejects a request that sat unapproved long enough for its blockhash to expire.
+  if (/invalid_payloads|payloads invalid|"code":-2\b/i.test(text)) {
+    return "Your wallet couldn't sign this. The request may have expired, so please try again."
   }
   if (/not_submitted|"code":-4\b/i.test(text)) {
     return "Your wallet couldn't send the transaction. Please try again."
