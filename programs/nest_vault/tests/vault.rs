@@ -903,3 +903,81 @@ fn empty_pool_still_records_the_check_in() {
     claim(&mut env, mint, &guardian).unwrap(); // nothing left, but the heartbeat lands
     assert_eq!(vault_state(&env.svm, &env.vault).guardian_last_seen, vec![now(&env.svm)]);
 }
+
+// ---------------------------------------------------------------------------------------
+// Mainnet SKR
+// ---------------------------------------------------------------------------------------
+
+/// The real SKR mint account from mainnet (tests/fixtures/README.md says how it was read).
+const SKR_MINT: &str = "SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3";
+const SKR_MINT_DATA: &[u8] = include_bytes!("fixtures/skr-mint-mainnet.bin");
+
+/// Puts SKR's real mint account at its real address, and gives `owner` a token account holding
+/// `amount` SKR. SKR's mint authority is not ours, so the balance is written directly.
+fn load_mainnet_skr(env: &mut Env, amount: u64) -> (Pubkey, Pubkey) {
+    let skr: Pubkey = SKR_MINT.parse().unwrap();
+    let owner = env.owner.insecure_clone();
+    // Borrow a real Token-program account shape from a scratch mint, then swap in SKR's data.
+    let scratch = create_mint(&mut env.svm, &owner);
+    let mut mint_account = env.svm.get_account(&scratch).unwrap();
+    mint_account.data = SKR_MINT_DATA.to_vec();
+    env.svm.set_account(skr, mint_account).unwrap();
+
+    let holder = create_token_account(&mut env.svm, &owner, &scratch, &owner.pubkey());
+    let mut token_account = env.svm.get_account(&holder).unwrap();
+    token_account.data[0..32].copy_from_slice(skr.as_ref()); // mint
+    token_account.data[64..72].copy_from_slice(&amount.to_le_bytes()); // amount
+    env.svm.set_account(holder, token_account).unwrap();
+    (skr, holder)
+}
+
+#[test]
+fn guardian_rewards_work_with_mainnet_skr() {
+    let mut env = setup();
+    let (skr, owner_skr) = load_mainnet_skr(&mut env, 100_000_000); // 100 SKR
+    assert_eq!(SKR_MINT_DATA[44], 6, "SKR has 6 decimals");
+    let owner = env.owner.insecure_clone();
+    let guardian = env.guardian.insecure_clone();
+
+    // Setup and funding exactly as the app sends them: 10 SKR a week, funded with 50 SKR.
+    let pool = stipend_pda(&env.vault);
+    let pool_token = ata(&pool, &skr);
+    let setup_ix = ix(
+        nest_vault::instruction::SetupStipend { rate_per_week: 10_000_000 },
+        nest_vault::accounts::SetupStipend {
+            owner: owner.pubkey(),
+            vault: env.vault,
+            pool,
+            mint: skr,
+            pool_token,
+            token_program: spl_token::ID,
+            associated_token_program: anchor_spl::associated_token::ID,
+            system_program: system_program::ID,
+        },
+    );
+    let fund_ix = ix(
+        nest_vault::instruction::FundStipend { amount: 50_000_000 },
+        nest_vault::accounts::FundStipend {
+            funder: owner.pubkey(),
+            pool,
+            mint: skr,
+            funder_token: owner_skr,
+            pool_token,
+            token_program: spl_token::ID,
+        },
+    );
+    send(&mut env.svm, &[setup_ix, fund_ix], &owner, &[]).unwrap();
+    assert_eq!(token_balance(&env.svm, &pool_token), 50_000_000);
+    assert_eq!(token_balance(&env.svm, &owner_skr), 50_000_000);
+
+    // The guardian checks in and collects a week of SKR; the check-in is recorded.
+    claim(&mut env, skr, &guardian).unwrap();
+    assert_eq!(token_balance(&env.svm, &ata(&guardian.pubkey(), &skr)), 10_000_000);
+    assert_eq!(token_balance(&env.svm, &pool_token), 40_000_000);
+    assert_eq!(vault_state(&env.svm, &env.vault).guardian_last_seen, vec![now(&env.svm)]);
+
+    // Missed weeks are forfeited on SKR too: a month away pays 8 days.
+    warp(&mut env.svm, 30 * DAY);
+    claim(&mut env, skr, &guardian).unwrap();
+    assert_eq!(token_balance(&env.svm, &ata(&guardian.pubkey(), &skr)), 10_000_000 + 10_000_000 * 8 / 7);
+}

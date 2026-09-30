@@ -2,9 +2,22 @@
 
 **If someone forces you to unlock your phone, they get your spending money. Your savings can't move for days, and your guardian already knows.**
 
-Nest Finance is a savings app for Solana Mobile (Seeker). It looks like an ordinary personal finance app. Underneath, your savings sit in an on-chain vault where every withdrawal waits a delay that you, a guardian, or the app itself can cancel. A second "duress" PIN opens a normal-looking wallet showing only your spending balance, while it silently locks the vault and alerts your guardians.
+Nest Finance is a savings app for Solana Mobile (Seeker). It looks like an ordinary personal finance app. Underneath, your savings sit in an on-chain vault where every withdrawal waits a delay that you, a guardian, or the app itself can cancel. A second "duress" PIN opens a normal-looking wallet showing only your spending balance, while it silently locks the vault and alerts your guardians. Afterwards, an **AI model running on the phone** explains why the savings were frozen and what to do, without sending anything off the device.
 
 Built for [Clock In](https://solanamobile.radiant.nexus/), the Solana Mobile hackathon.
+
+## Evidence at a glance
+
+| Area | What to look at |
+|---|---|
+| **AI** | On-device AI (Qwen3 0.6B through llama.cpp) explains why savings were frozen, from the on-chain facts and the phone's state at the backup PIN. No server, no API key, nothing leaves the phone. [Section below](#why-is-this-frozen-on-device-ai), [clip](https://github.com/JayCul/nest-finance/releases/latest/download/freeze-report-demo.mp4), code in `app/features/ai/on-device.ts` |
+| **Code** | This public repository: Anchor program (`programs/nest_vault`), Android app (`app/`), Kotlin SMS module (`app/modules/nest-sms`), Mobile Wallet Adapter signing (`app/features/vault/use-vault.ts`), Android Keystore sentinel key (`app/features/vault/sentinel.ts`). Map of every feature to its source: [docs/verify.md](docs/verify.md) |
+| **Tests** | 22 program tests, all passing, run against the deployed binary, including an attacker holding the owner's real key and guardian rewards on the real SKR mint: `cargo test` ([docs/verify.md](docs/verify.md)) |
+| **On-chain proof** | 65 decoded devnet transactions on the demo vaults (deposits, delayed withdrawals, guardian cancels, backup-PIN freezes signed by the phone's key, SKR-style rewards), each linked to the explorer: [docs/devnet-evidence.md](docs/devnet-evidence.md). Deployed program matches this code byte for byte ([docs/verify.md](docs/verify.md)) |
+| **SKR** | Guardian rewards paid in SKR, enforced on-chain; tested against SKR's real mainnet mint account; mainnet is a config change: [docs/skr.md](docs/skr.md) |
+| **Security** | Threat model with the test behind each defence: [docs/threat-model.md](docs/threat-model.md). Automated review triage: [docs/security-review.md](docs/security-review.md) |
+| **Deck** | [PDF](https://github.com/JayCul/nest-finance/releases/latest/download/nest-finance-deck.pdf) (text-selectable) and a [plain-text version](docs/deck.md) |
+| **Demo** | [Video](https://youtube.com/shorts/_GFJuXn5x9o) (2:50), [freeze report clip](https://github.com/JayCul/nest-finance/releases/latest/download/freeze-report-demo.mp4) (2:22), [APK](https://github.com/JayCul/nest-finance/releases/latest/download/nest-finance-devnet.apk) |
 
 ## The problem
 
@@ -25,7 +38,7 @@ Take away the instant. Savings sit in an on-chain vault where every withdrawal w
 - **APK (devnet):** [nest-finance-devnet.apk](https://github.com/JayCul/nest-finance/releases/latest/download/nest-finance-devnet.apk) from the [release](https://github.com/JayCul/nest-finance/releases/latest). Install on a Seeker or any 64-bit Android phone with an MWA wallet.
 - **Demo video:** [watch on YouTube](https://youtube.com/shorts/_GFJuXn5x9o), under 3 minutes, recorded on an Android emulator with touches shown: owner tour, protected withdrawal, backup PIN, guardian alert and cancel. The voiceover script is in [docs/demo-video-script.md](docs/demo-video-script.md).
 - **Freeze report with on-device AI:** [freeze-report-demo.mp4](https://github.com/JayCul/nest-finance/releases/latest/download/freeze-report-demo.mp4) (2:22), a separate clip of the "Why is this frozen?" screen and the AI explanation. It is not in the main video, which stays under 3 minutes.
-- **Pitch deck:** [docs/nest-finance-deck.pdf](docs/nest-finance-deck.pdf), 10 slides.
+- **Pitch deck:** [nest-finance-deck.pdf](https://github.com/JayCul/nest-finance/releases/latest/download/nest-finance-deck.pdf) (also in `docs/`), and a [plain-text version](docs/deck.md).
 - **Verify it yourself:** deployed addresses, build and test steps, proof the devnet program matches this code, and where each feature lives: [docs/verify.md](docs/verify.md).
 - **SKR integration and mainnet path:** [docs/skr.md](docs/skr.md). Security review triage: [docs/security-review.md](docs/security-review.md).
 
@@ -175,7 +188,7 @@ Program ID (devnet): `EGe3adgVvYu3He7jgbi3sKQTWrV1v9JBNxT7nGQjA4AZ`
 
 ## Limits
 
-- Not audited. Devnet only.
+- Not audited. Devnet only. See [docs/threat-model.md](docs/threat-model.md) for what is and is not covered.
 - Whoever holds the program's upgrade authority could change these rules. Before any mainnet use it must be made immutable or put behind a multisig.
 - The delay protects savings, not the spending wallet. The decoy balance is meant to be handed over.
 - The app's guidance is always to comply. It is designed to end an encounter quickly, not to resist.

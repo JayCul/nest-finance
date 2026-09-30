@@ -37,4 +37,4 @@ In the ElevenLabs file, SKR is written "S K R" so it is read as letters. ElevenL
 - The freeze report and on-device AI are not in this video, to keep it under 3 minutes. They have their own clip: [freeze-report-demo.mp4](https://github.com/JayCul/nest-finance/releases/latest/download/freeze-report-demo.mp4), recorded with `scripts/demo/05-freeze-report.sh`.
 
 - Timecodes come from `scripts/demo/assemble.sh`, which prints where each clip starts. Cuts used for this video: `T02="2-26 30-36 38-43 47-62" T03="4-8 15-17 20.5-33 51-56 58-64" T04="3-29 41-48 51-57.5 59-73" T01="0-8 20-54"`.
-- The program's 21 tests, including an attacker holding the owner's real key, are covered in the deck rather than the video.
+- The program's 22 tests, including an attacker holding the owner's real key, are covered in the deck rather than the video.

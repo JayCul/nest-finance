@@ -14,7 +14,7 @@ Everything needed to check Nest Finance beyond the demo video: where it is deplo
 | Demo guardian | `27WB8w9rQRKnpmRWYCe28naQMSdpqST7pukyC1wAoKn7` |
 | Reward token on devnet (Circle devnet USDC, stand-in for SKR) | `4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU` |
 
-The demo vault's transaction history on the explorer shows the flows from the video as real devnet transactions: deposits, withdrawal requests, cancels by the guardian, the backup-PIN lockdown signed by the phone's sentinel key, and stipend claims. The program emits an event for each, which the app decodes into its Activity screen.
+[devnet-evidence.md](devnet-evidence.md) lists every event on the demo vaults (65 so far) with a link to each transaction, decoded from the chain. The demo vault's history shows the flows from the video as real devnet transactions: deposits, withdrawal requests, cancels by the guardian, the backup-PIN lockdown signed by the phone's sentinel key, and stipend claims. The program emits an event for each, which the app decodes into its Activity screen.
 
 Account addresses are program-derived:
 
@@ -34,11 +34,11 @@ anchor build --arch v1
 cargo test
 ```
 
-21 tests run against the built program in LiteSVM (`programs/nest_vault/tests/vault.rs`). The key one, `attacker_with_owner_key_cannot_take_funds_early`, holds the owner's real key and tries every route to the savings before the delay; every route fails. Others cover guardian cancel, lockdown voiding pending requests, delayed settings changes, the safe list, expedite with a guardian, bad settings, and the stipend's pro-rata accrual and 8-day cap.
+22 tests run against the built program in LiteSVM (`programs/nest_vault/tests/vault.rs`). The key one, `attacker_with_owner_key_cannot_take_funds_early`, holds the owner's real key and tries every route to the savings before the delay; every route fails. Others cover guardian cancel, lockdown voiding pending requests, delayed settings changes, the safe list, expedite with a guardian, bad settings, the stipend's pro-rata accrual and 8-day cap, and `guardian_rewards_work_with_mainnet_skr`, which runs guardian rewards against SKR's real mainnet mint account ([skr.md](skr.md)). The tests load `target/deploy/nest_vault.so`, the same binary that is deployed.
 
 ## Confirm the deployed program is this code
 
-The program on devnet is byte-identical to the `target/deploy/nest_vault.so` built from this repository at commit `af20e91` (the last change under `programs/`):
+The program on devnet is byte-identical to the `target/deploy/nest_vault.so` built from this repository at commit `af20e91`, the last change to the program source (`programs/nest_vault/src`; later commits only add tests):
 
 ```bash
 solana program dump EGe3adgVvYu3He7jgbi3sKQTWrV1v9JBNxT7nGQjA4AZ deployed.so -u devnet
@@ -79,4 +79,4 @@ On Windows, build from a short path such as `C:\nf\app`; some native modules exc
 
 A separate clip shows it on the emulator: [freeze-report-demo.mp4](https://github.com/JayCul/nest-finance/releases/latest/download/freeze-report-demo.mp4). To check it yourself on a phone, follow step 7 of "For judges" in the README. Once the model is downloaded, the explanation needs no network: `askOnDevice` in `app/features/ai/on-device.ts` calls only the local llama.cpp context, and the only network request in the feature is the model download itself.
 
-An automated security review and its triage are in [security-review.md](security-review.md).
+An automated security review and its triage are in [security-review.md](security-review.md); the threat model, with the test or code behind each defence, is in [threat-model.md](threat-model.md).

@@ -38,6 +38,18 @@ Top-ups, claims and balances read the mint from the pool account (`app/features/
 
 SKR exists only on mainnet, so the devnet build uses Circle's devnet USDC (`4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU`), which anyone can get free at faucet.circle.com. Like SKR, it is a classic SPL token with 6 decimals, so amounts, rates and the UI behave exactly as they will with SKR. The app labels it as a stand-in and offers a "Get free test tokens" button that copies the wallet address and opens the Circle faucet.
 
+## Demonstrated with the real SKR mint
+
+The test `guardian_rewards_work_with_mainnet_skr` (`programs/nest_vault/tests/vault.rs`) loads SKR's actual mainnet mint account, copied byte for byte from mainnet into `programs/nest_vault/tests/fixtures/skr-mint-mainnet.bin` (the fixture's README gives the slot and the command), at SKR's real address. It then runs the deployed program binary through the full cycle the app uses:
+
+1. The owner creates a pool of 10 SKR a week and funds it with 50 SKR in one transaction.
+2. The guardian checks in and collects 10 SKR; the check-in is recorded on the vault.
+3. A month later the guardian collects 8 days' worth, not 30: missed weeks are forfeited.
+
+SKR's mint authority is not ours, so the test writes the owner's SKR balance directly instead of minting it. Everything the program does (associated token accounts for SKR, `transfer_checked` with SKR's 6 decimals, the pool signing as a PDA) runs against the real mint account. `cargo test`: 22 of 22 pass.
+
+On devnet, the same instructions run with the Circle USDC stand-in; the transactions are listed in [devnet-evidence.md](devnet-evidence.md) (pool created, funded, and rewards collected).
+
 ## Moving to mainnet SKR
 
 SKR on mainnet: `SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3`, owned by the classic Token program, 6 decimals (read from the chain on 30 September 2026).
