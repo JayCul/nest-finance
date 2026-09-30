@@ -28,6 +28,8 @@ Pauses assume about 2.6 words a second, a typical ElevenLabs narration pace. Voi
 | 20 | 2:42.5 | "No open requests" | It's cancelled. The money never moved. | 1s |
 | 21 | 2:46 | "No open requests" (held) | Nest Finance. Savings that can't be rushed. | end |
 
+Newer ElevenLabs models ignore `<break>` tags. Generate the whole script in one go, then run `python scripts/demo/place-voiceover.py <voiceover.mp3>`: it cuts each line out of the audio and places it at its start time, writing `demo-recordings/nest-finance-demo-voiced.mp4`.
+
 In the ElevenLabs file, SKR is written "S K R" so it is read as letters. ElevenLabs caps one break at 3 seconds, so longer pauses are two breaks in a row.
 
 ## Notes
