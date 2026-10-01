@@ -1,4 +1,4 @@
-import { isAddress } from '@solana/kit'
+import { type Address, isAddress } from '@solana/kit'
 import { useMobileWallet } from '@wallet-ui/react-native-kit'
 import * as Haptics from 'expo-haptics'
 import { router } from 'expo-router'
@@ -9,14 +9,21 @@ import { Ionicons } from '@expo/vector-icons'
 import { Card, Field, InfoRow, Notice, PillButton, ScreenHeader, Segmented } from '@/components/ui'
 import { colors, fonts, radius, shadow, space } from '@/constants/theme'
 import { friendlyError } from '@/features/errors'
-import { useChainNow, useSolPrice, useVault, useVaultActions } from '@/features/vault/use-vault'
+import { RiskBriefing } from '@/components/risk-briefing'
+import { assessWithdrawal, humanDuration, riskFacts } from '@/features/intel/withdrawal-risk'
+import { useChainNow, usePendingWithdrawals, useSolPrice, useVault, useVaultActions, useVaultActivity } from '@/features/vault/use-vault'
 import { formatDuration, formatSol, formatWhen, lamportsToSol, shortAddress, solToLamports, usd } from '@/utils/format'
 
 type Mode = 'protected' | 'safe'
 
+const EXPLAIN_TASK =
+  'Explain this transaction to the owner before they sign it, in 2 or 3 sentences: what it does, when the money moves, who can stop it, and why the app scored the risk this way. End with the recommended action.'
+
 export default function WithdrawScreen() {
   const { account } = useMobileWallet()
   const vault = useVault()
+  const activity = useVaultActivity()
+  const pending = usePendingWithdrawals()
   const price = useSolPrice()
   const now = useChainNow()
   const { requestWithdrawal, instantWithdraw } = useVaultActions()
@@ -36,6 +43,24 @@ export default function WithdrawScreen() {
   const target = mode === 'safe' ? safeAddress : destination.trim()
   const validTarget = !!target && isAddress(target) && target !== v.address
   const unlockAt = now + v.delaySecs
+  const risk = assessWithdrawal({
+    amount: lamports,
+    destination: (validTarget ? target : v.owner) as Address,
+    available: v.available,
+    safeList: v.safeList,
+    ownerWallet: v.owner,
+    history: activity.data ?? [],
+    otherPending: (pending.data ?? []).filter((p) => !p.voided),
+    viewer: 'owner',
+    now,
+  })
+  const explainFacts = [
+    `Transaction the owner is about to sign: ${mode === 'safe' ? 'an instant withdrawal to their own safe address' : 'a protected withdrawal request'} of ${formatSol(lamports)} to ${validTarget ? shortAddress(target) : 'an address'}.`,
+    mode === 'safe'
+      ? 'Safe-address withdrawals arrive at once and cannot be cancelled.'
+      : `It waits a protection window of ${humanDuration(v.delaySecs)}; the owner or a guardian can cancel it until then, and the destination cannot be changed.`,
+    riskFacts(risk, { amount: lamports, now, viewer: 'owner' }),
+  ].join('\n')
 
   async function submit() {
     setBusy(true)
@@ -120,6 +145,15 @@ export default function WithdrawScreen() {
               {formatDuration(v.delaySecs)} protection window. You or a guardian can cancel it until then.
             </Text>
           </View>
+        ) : null}
+
+        {lamports > 0n && !tooMuch && validTarget ? (
+          <RiskBriefing
+            risk={risk}
+            facts={explainFacts}
+            task={EXPLAIN_TASK}
+            onDemand
+          />
         ) : null}
 
         {tooMuch ? <Notice tone="warning">That is more than your savings hold.</Notice> : null}

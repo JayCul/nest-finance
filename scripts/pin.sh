@@ -9,5 +9,5 @@ off=${2:-0}
 for ((i = 0; i < ${#1}; i++)); do
   d=${1:i:1}
   adb shell input tap "${X[$d]}" "$(( ${Y[$d]} + off ))"
-  sleep 0.25
+  sleep 0.5
 done

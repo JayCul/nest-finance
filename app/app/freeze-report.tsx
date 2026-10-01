@@ -3,22 +3,20 @@ import { address } from '@solana/kit'
 import { useQuery } from '@tanstack/react-query'
 import * as Linking from 'expo-linking'
 import { Redirect, useLocalSearchParams } from 'expo-router'
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useMemo } from 'react'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Card, InfoRow, Notice, PillButton, ScreenHeader } from '@/components/ui'
+import { Card, InfoRow, PillButton, ScreenHeader } from '@/components/ui'
 import { AppConfig } from '@/constants/app-config'
 import { colors, fonts, radius, space } from '@/constants/theme'
-import { askOnDevice, downloadModel, isModelReady, MODEL, releaseModel } from '@/features/ai/on-device'
-import { UserError } from '@/features/errors'
 import { useGuardedVault } from '@/features/guardian/use-guardian'
 import { readDuressLog } from '@/features/security/duress'
 import { useIsDuress } from '@/features/security/session'
-import { buildFreezeReport, EXPLAIN_SYSTEM, reportFacts } from '@/features/vault/freeze-report'
+import { buildFreezeReport } from '@/features/vault/freeze-report'
 import { useChainNow, usePendingWithdrawals, useVault, useVaultActivity } from '@/features/vault/use-vault'
 import { formatCountdown, formatDuration, formatWhen } from '@/utils/format'
 
-/** Why a vault is frozen: the on-chain facts, the backup-PIN record, and an on-device AI summary. */
+/** Why a vault is frozen: the on-chain facts and the backup-PIN record. */
 export default function FreezeReportScreen() {
   const duress = useIsDuress()
   const { vault: vaultParam } = useLocalSearchParams<{ vault?: string }>()
@@ -89,7 +87,6 @@ export default function FreezeReportScreen() {
 
             {report.backupPin ? <BackupPinCard entry={report.backupPin} /> : null}
 
-            <ExplainCard facts={reportFacts(report, now)} />
           </>
         )}
       </ScrollView>
@@ -139,94 +136,6 @@ function BackupPinCard({ entry }: { entry: NonNullable<ReturnType<typeof buildFr
           />
         ) : null}
       </View>
-    </Card>
-  )
-}
-
-type Phase = { kind: 'idle' } | { kind: 'downloading'; progress: number } | { kind: 'thinking' } | { kind: 'done' } | { kind: 'error'; message: string }
-
-function ExplainCard({ facts }: { facts: string }) {
-  const ready = useQuery({ queryKey: ['ai-model-ready'], queryFn: isModelReady })
-  const [phase, setPhase] = useState<Phase>({ kind: 'idle' })
-  const [text, setText] = useState('')
-
-  useEffect(() => () => void releaseModel(), [])
-
-  async function explain() {
-    try {
-      if (!(await isModelReady())) {
-        setPhase({ kind: 'downloading', progress: 0 })
-        await downloadModel((progress) => setPhase({ kind: 'downloading', progress }))
-        ready.refetch()
-      }
-      setText('')
-      setPhase({ kind: 'thinking' })
-      const answer = await askOnDevice(EXPLAIN_SYSTEM, facts, setText)
-      if (!answer) throw new UserError('The AI model returned an empty answer. Please try again.')
-      setText(answer)
-      setPhase({ kind: 'done' })
-    } catch (e) {
-      console.warn('[nest] on-device AI:', e)
-      setPhase({
-        kind: 'error',
-        message: e instanceof UserError ? e.message : "The on-device AI couldn't run just now. Please try again.",
-      })
-    }
-  }
-
-  const busy = phase.kind === 'downloading' || phase.kind === 'thinking'
-  const mb = Math.round(MODEL.bytes / 1e6)
-
-  return (
-    <Card>
-      <View style={styles.statusRow}>
-        <View style={[styles.statusIcon, { backgroundColor: colors.primarySoft }]}>
-          <Ionicons name="sparkles-outline" size={20} color={colors.primaryDark} />
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.cardTitle}>Explain it in plain words</Text>
-          <Text style={styles.muted}>On-device AI. Runs on this phone; nothing is sent anywhere.</Text>
-        </View>
-      </View>
-
-      {text ? <Text style={styles.answer}>{text}</Text> : null}
-
-      {phase.kind === 'downloading' ? (
-        <View style={{ gap: 6 }}>
-          <View style={styles.track}>
-            <View style={[styles.fill, { width: `${Math.round(phase.progress * 100)}%` }]} />
-          </View>
-          <Text style={styles.muted}>
-            Downloading the AI model: {Math.round(phase.progress * 100)}% of {mb} MB
-          </Text>
-        </View>
-      ) : null}
-      {phase.kind === 'thinking' && !text ? <Text style={styles.muted}>Reading the facts…</Text> : null}
-      {phase.kind === 'error' ? <Notice tone="danger">{phase.message}</Notice> : null}
-
-      {phase.kind !== 'done' ? (
-        <PillButton
-          title={
-            busy
-              ? 'Working…'
-              : ready.data
-                ? 'Explain with on-device AI'
-                : `Download AI model (${mb} MB) and explain`
-          }
-          icon="sparkles-outline"
-          loading={busy}
-          style={{ flex: 0 }}
-          onPress={explain}
-        />
-      ) : (
-        <Text style={styles.fine}>
-          Written by {MODEL.name} on this phone from the facts above. It can make mistakes; the facts above are what the
-          program recorded.
-        </Text>
-      )}
-      {!ready.data && phase.kind === 'idle' ? (
-        <Text style={styles.fine}>One-time download from Hugging Face. Wi-Fi recommended.</Text>
-      ) : null}
     </Card>
   )
 }

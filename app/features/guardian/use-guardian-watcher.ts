@@ -3,6 +3,7 @@ import { useMobileWallet } from '@wallet-ui/react-native-kit'
 import * as Notifications from 'expo-notifications'
 import { useEffect, useRef } from 'react'
 import { Role } from '@/generated/nest-vault'
+import { assessWithdrawal } from '@/features/intel/withdrawal-risk'
 import { fetchPendingWithdrawals, fetchVaultEvents } from '@/features/vault/use-vault'
 import { formatSol, shortAddress } from '@/utils/format'
 import { useGuardedVaults } from './use-guardian'
@@ -66,11 +67,32 @@ export function useGuardianWatcher(enabled: boolean) {
         if (p.voided || seenPending.current.has(p.address)) continue
         seenPending.current.add(p.address)
         if (firstRun) continue
-        notify(
-          'Withdrawal requested',
-          `${formatSol(p.amount)} from savings you protect for ${who}. If they didn't ask for this, cancel it.`,
-          vault.address,
-        )
+        const others = pending.filter((x) => !x.voided && x.address !== p.address)
+        // The alert carries the app's risk score, so the guardian knows how urgent it is.
+        fetchVaultEvents(client.rpc, vault.address, 10)
+          .catch(() => [])
+          .then((history) => {
+            const risk = assessWithdrawal({
+              amount: p.amount,
+              destination: p.destination,
+              requestedAt: p.requestedAt,
+              available: vault.available + p.amount,
+              safeList: vault.safeList,
+              ownerWallet: vault.owner,
+              history,
+              otherPending: others,
+              viewer: 'guardian',
+              now: Math.floor(Date.now() / 1000),
+            })
+            const level = risk.level === 'high' ? 'High risk' : risk.level === 'medium' ? 'Medium risk' : 'Low risk'
+            const why = risk.signals.filter((x) => x.points > 0).slice(0, 2).map((x) => x.label.toLowerCase())
+            return notify(
+              `Withdrawal requested · ${level}`,
+              `${formatSol(p.amount)} from savings you protect for ${who}${why.length ? ` (${why.join(', ')})` : ''}. If they didn't ask for this, cancel it.`,
+              vault.address,
+            )
+          })
+          .catch(() => {})
       }
     }
   }, [snapshot.data, enabled, client.rpc])

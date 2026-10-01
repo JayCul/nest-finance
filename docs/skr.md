@@ -12,6 +12,21 @@ Nest Finance pays guardians in SKR for staying reachable. A guardian is only use
 
 Only a current guardian of the vault can claim (`only_guardians_can_claim`). The tests `guardian_first_claim_pays_a_week_and_counts_as_check_in`, `stipend_accrues_pro_rata_and_caps_at_eight_days` and `empty_pool_still_records_the_check_in` cover the rules.
 
+## Claim limits and anti-abuse rules
+
+All enforced by the program in `claim_stipend` and `StipendPool` (`programs/nest_vault/src/lib.rs`, `state.rs`):
+
+| Rule | Effect |
+|---|---|
+| Only current guardians can claim | The claimer must be in the vault's guardian list at claim time; removing a guardian (a settings change that waits the delay) ends their pay. Test: `only_guardians_can_claim`. |
+| Pay is time-based, from the last claim | Each claim pays `rate × time since this guardian's last claim`, so claiming twice in a row pays nothing extra. |
+| 8-day cap per claim | Time beyond 8 days since the last claim is forfeited, so a guardian cannot go quiet for months and collect it all later. Test: `stipend_accrues_pro_rata_and_caps_at_eight_days`. |
+| Payout capped at the pool balance | A claim never pays more than the pool holds, and an empty pool still records the check-in. Test: `empty_pool_still_records_the_check_in`. |
+| Claim = check-in | Every claim writes the guardian's `guardian_last_seen` on the vault, so rewards and the owner's view of guardian activity cannot drift apart. |
+| Fixed token per pool | The pool's mint is set at creation; top-ups and claims must use it (`has_one = mint`), so nobody can fund or drain a pool with a different token. |
+| Pool funds leave only through claims | The pool's token account is owned by the pool PDA; only `claim_stipend` signs for it. |
+| Bounded state | The pool tracks at most 3 guardians (the vault maximum); entries for removed guardians are dropped to make room. |
+
 ## Accounts
 
 | Account | Address | Holds |

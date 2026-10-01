@@ -9,13 +9,20 @@ import { Card, InfoRow, Notice, PillButton, ScreenHeader } from '@/components/ui
 import { AppConfig } from '@/constants/app-config'
 import { colors, fonts, radius, shadow, space } from '@/constants/theme'
 import { friendlyError } from '@/features/errors'
-import { useChainNow, usePendingWithdrawals, useVault, useVaultActions } from '@/features/vault/use-vault'
+import { RiskBriefing } from '@/components/risk-briefing'
+import { assessWithdrawal, riskFacts } from '@/features/intel/withdrawal-risk'
+import { madeOnThisPhone } from '@/features/vault/local-withdrawals'
+import { useChainNow, usePendingWithdrawals, useVault, useVaultActions, useVaultActivity } from '@/features/vault/use-vault'
 import { formatCountdown, formatDuration, formatSol, formatWhen, shortAddress } from '@/utils/format'
+
+const OWNER_TASK =
+  'Write a short check for the owner about this pending withdrawal in 2 or 3 sentences: what is leaving, how long until it can complete, and why the app scored it this way. End with the recommended action.'
 
 export default function PendingWithdrawalScreen() {
   const { address } = useLocalSearchParams<{ address: string }>()
   const vault = useVault()
   const pending = usePendingWithdrawals()
+  const activity = useVaultActivity()
   const now = useChainNow()
   const { cancelWithdrawal, executeWithdrawal } = useVaultActions()
   const [busy, setBusy] = useState<'cancel' | 'execute' | null>(null)
@@ -45,6 +52,19 @@ export default function PendingWithdrawalScreen() {
   const left = item.unlockAt - now
   const frozen = v.lockdownUntil > now
   const ready = left <= 0 && !frozen && !item.voided
+  const risk = assessWithdrawal({
+    amount: item.amount,
+    destination: item.destination,
+    requestedAt: item.requestedAt,
+    available: v.available + item.amount,
+    safeList: v.safeList,
+    ownerWallet: v.owner,
+    history: activity.data ?? [],
+    otherPending: (pending.data ?? []).filter((p) => !p.voided && p.address !== item.address),
+    fromThisPhone: madeOnThisPhone(item.address, item.requestedAt),
+    viewer: 'owner',
+    now,
+  })
 
   const act = async (kind: 'cancel' | 'execute') => {
     setBusy(kind)
@@ -90,6 +110,14 @@ export default function PendingWithdrawalScreen() {
           <InfoRow label="Destination" value={shortAddress(item.destination, 6)} />
           <InfoRow label="Can be cancelled by" value={v.guardians.length ? 'You or your guardian' : 'You'} />
         </Card>
+
+        {!item.voided ? (
+          <RiskBriefing
+            risk={risk}
+            facts={riskFacts(risk, { amount: item.amount, unlockAt: item.unlockAt, now, viewer: 'owner' })}
+            task={OWNER_TASK}
+          />
+        ) : null}
 
         {error ? <Notice tone="danger">{error}</Notice> : null}
       </ScrollView>

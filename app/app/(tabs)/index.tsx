@@ -187,6 +187,13 @@ function RealHome() {
               onPress={() => router.push('/security-setup')}
             />
           )}
+          <PillButton
+            title="What if…? Test your setup"
+            icon="sparkles-outline"
+            variant="outline"
+            style={{ flex: 0 }}
+            onPress={() => router.push('/simulator')}
+          />
         </Card>
 
         <SectionHeader title="Recent Activity" action="View All" onAction={() => router.push('/activity')} />

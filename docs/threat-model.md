@@ -61,11 +61,25 @@ A phishing dApp tricks the owner into signing a vault instruction.
 - Strangers can deposit and can execute a withdrawal whose delay has passed (it still pays only the owner's chosen destination), and nothing else (test `strangers_cannot_lock_down`).
 - Every program account is a typed, discriminator-checked Anchor account at a derived address; see the triage of an automated review in [security-review.md](security-review.md).
 
-## Privacy of the freeze report and the AI
+## Failure cases
 
-- Device details (model, system, app version, public IP, GPS) are recorded only when the backup PIN is used, and stored only in the phone's secure storage (`duress.ts`). The public IP comes from Cloudflare's trace endpoint, which receives nothing but the request itself.
-- The AI explanation runs on the phone (Qwen3 0.6B through llama.cpp). No server and no API key: nothing to extract from the APK, and the report never leaves the device. The model download is the feature's only network request and carries no user data (`app/features/ai/on-device.ts`).
-- The model cannot act: it only turns the report's facts into sentences. The suggested next step is chosen in code for each case and the model rephrases it, so a wrong answer cannot give unsafe advice; the recorded facts are always shown beside it.
+| Case | What happens | Backed by |
+|---|---|---|
+| **Compromised phone** (malware or an attacker with the unlocked phone) | The owner key is not on the phone (Seed Vault or the wallet app holds it), so the attacker can at most get the owner to sign a request, which waits the delay and alerts guardians. The sentinel key on the phone can only freeze and cancel. | `sentinel_cannot_move_funds`, `attacker_with_owner_key_cannot_take_funds_early` |
+| **Guardian collusion with an attacker** | Guardians can never move funds, so collusion cannot take savings. Together with a stolen owner key, a guardian could release a pending withdrawal early (`expedite_withdrawal` needs owner and guardian) or lift a freeze early. Mitigation: choose guardians you trust, use more than one, and keep the delay long so an unexpected request is noticed. | `owner_and_guardian_can_expedite`, `lifting_lockdown_needs_owner_and_real_guardian` |
+| **Lost or unreachable guardian** | Nothing is at risk: withdrawals still wait the delay and the owner can cancel alone. The vault loses its second pair of eyes until the guardian is replaced (a settings change that waits the delay). The What-if simulator flags this, and SKR rewards encourage weekly check-ins so a quiet guardian shows up early. | `settings_change_waits_and_can_be_cancelled`, `app/features/intel/simulator.ts` |
+| **SMS leakage** | The emergency text contains the fact the backup PIN was used, a time and a map link. Anyone who sees the contact's phone sees that. It never contains balances, addresses or keys. The text is sent by a native module with no UI on the owner's phone, so the person holding that phone sees nothing. | `app/features/security/duress.ts`, `app/modules/nest-sms` |
+| **Emergency contact consent** | The owner chooses the contact in setup and is told what the text says; the contact should agree to it beforehand. Practice mode sends a text clearly marked as a drill, so contact and owner can rehearse without alarm. The app never texts anyone else. | `app/app/security-setup.tsx` |
+| **Who can freeze** | The owner, any guardian, and the phone's sentinel key (the backup PIN). Strangers cannot. A repeated freeze only extends it. A freeze voids every pending withdrawal and pending settings change. | `strangers_cannot_lock_down`, `repeated_lockdown_extends_never_shortens`, `sentinel_lockdown_freezes_and_voids_everything` |
+| **Lifting a freeze** | It ends by itself after the freeze period the owner chose. Lifting it early needs the owner and a current guardian signing together; neither can alone, so a coerced owner cannot undo the freeze. | `lifting_lockdown_needs_owner_and_real_guardian` |
+| **Groq unavailable or wrong** | Scores, signals, simulator outcomes and recommended actions are computed in code and shown even without AI. The model cannot take any action, and its text is shown next to the computed facts. | `app/features/intel/` |
+
+## Privacy and the AI
+
+- Device details (model, system, app version, public IP, GPS) are recorded only when the backup PIN is used, and stored only in the phone's secure storage (`duress.ts`). They are never sent to the AI. The public IP comes from Cloudflare's trace endpoint, which receives nothing but the request itself.
+- Nest Intelligence sends Groq only the facts shown on screen: amounts, durations, counts, roles, risk signals and short addresses. Never keys, full addresses, location, IP, device details or PINs (`app/features/ai/groq.ts`).
+- The Groq API key is built into the app as AES-256-GCM ciphertext (key derived with SHA-256) and decrypted at run time. That keeps it out of the APK as plain text, but a determined person can recover it; it is a dedicated key with a spending limit, rotated after judging. Its worst case is someone running up AI usage on that key, not access to anyone's funds or data.
+- The AI cannot act and does not decide. It words facts the app computed and repeats the app's recommended action.
 
 ## Trust assumptions and residual risks
 

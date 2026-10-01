@@ -11,10 +11,45 @@ import { colors, fonts, radius, space } from '@/constants/theme'
 import { Role } from '@/generated/nest-vault'
 import { friendlyError } from '@/features/errors'
 import { useGuardedVault, useGuardianActions, useNickname } from '@/features/guardian/use-guardian'
-import { useChainNow, useSolPrice } from '@/features/vault/use-vault'
+import { RiskBriefing } from '@/components/risk-briefing'
+import { assessWithdrawal, riskFacts } from '@/features/intel/withdrawal-risk'
+import { type ActivityItem, type PendingItem, useChainNow, useSolPrice, type VaultInfo } from '@/features/vault/use-vault'
 import { useMobileWallet } from '@wallet-ui/react-native-kit'
 import { Money } from '@/components/ui'
 import { accruedFor, toSkr, useStipend, useStipendActions } from '@/features/stipend/use-stipend'
+
+const BRIEFING_TASK =
+  'Write a briefing for a guardian about this pending withdrawal in 2 or 3 sentences: what is leaving, how long they have, and why the app scored it this way. End with the recommended action.'
+
+/** Risk score and AI briefing for one pending withdrawal, from a guardian's point of view. */
+function GuardianBriefing({
+  vault,
+  pending,
+  live,
+  events,
+  now,
+}: {
+  vault: VaultInfo
+  pending: PendingItem
+  live: PendingItem[]
+  events: ActivityItem[]
+  now: number
+}) {
+  const risk = assessWithdrawal({
+    amount: pending.amount,
+    destination: pending.destination,
+    requestedAt: pending.requestedAt,
+    available: vault.available + pending.amount,
+    safeList: vault.safeList,
+    ownerWallet: vault.owner,
+    history: events,
+    otherPending: live.filter((x) => x.address !== pending.address),
+    viewer: 'guardian',
+    now,
+  })
+  const facts = riskFacts(risk, { amount: pending.amount, unlockAt: pending.unlockAt, now, viewer: 'guardian' })
+  return <RiskBriefing risk={risk} facts={facts} task={BRIEFING_TASK} />
+}
 
 const fmtSkr = (n: number) => n.toLocaleString('en-US', { maximumFractionDigits: 2 })
 import { formatCountdown, formatDuration, formatSol, formatWhen, lamportsToSol, shortAddress, usd } from '@/utils/format'
@@ -112,6 +147,7 @@ export default function GuardedVaultScreen() {
                 style={{ flex: 0 }}
                 onPress={() => run(p.address, () => actions.cancel(vault.address, p.address))}
               />
+              <GuardianBriefing vault={vault} pending={p} live={live} events={events} now={now} />
             </Card>
           )
         })}

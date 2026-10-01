@@ -211,93 +211,92 @@ Name
 Who is this? (only on your phone)
 ```
 
-## 7. Why is this frozen? The phone explains.
+## 7. AI explains, scores and simulates. The program decides.
 
-On-device AI  
-Why is this frozen? The phone explains.  
-- A freeze report for the owner and each guardian: who froze it, when, what it cancelled, when it ends.  
-- After a backup PIN: phone model, system, public IP and GPS at that moment.  
-- Qwen3 0.6B runs on the phone through llama.cpp and explains it in plain words.  
-No server, no API key, nothing leaves the phone. The next step is chosen in code; the model only words it.  
-The report  
-The AI explains  
+Nest Intelligence  
+AI explains, scores and simulates. The program decides.  
+- Risk scoring: every withdrawal scored from on-chain signals; guardians get a briefing, and the alert says "High risk".  
+- Transaction explainer: what you are about to sign, in plain words, before the wallet opens.  
+- What-if simulator: seven attacks played against your real setup, with fixes and free-form questions.  
+Scores and outcomes are computed in code; Groq only words them. No keys, addresses or location are sent.  
+Guardian briefing  
+What-if simulator  
 Nest Finance · 7
 
-**Speaker notes:** After a freeze, the owner and each guardian can open a freeze report: who froze the savings, when, what it cancelled and when it ends. If the backup PIN caused it, the report also shows the phone's state at that moment. Then a small AI model running on the phone explains it in plain words. There is no server and no API key, so nothing sensitive, like the location from the moment someone was coerced, ever leaves the device. The suggested next step is chosen in code; the model only puts it into words.
+**Speaker notes:** Nest Intelligence makes the security understandable. Every withdrawal is scored for risk from on-chain signals, like a destination never used before or most of the savings leaving at once, and guardians get a plain-language briefing, with the risk level right in the alert. Before signing, the owner sees what the transaction does. And the What-if simulator plays seven attacks against the owner's real setup and says what to fix. The principle: the app computes the scores and outcomes, AI only words them, and the Solana program decides what is allowed.
 
-**Screenshot:** Freeze report: frozen by the backup PIN, with phone model, Android version, public IP and GPS location recorded at that moment
+**Screenshot:** Guardian view of a pending 0.6 SOL withdrawal: Medium risk 50, signals New destination, A large share, Right after a freeze, and an AI briefing advising to check with the owner
 
 ```text
-3:49
-Why is this frozen?
-The freeze has ended
-6
-Withdrawals work normally again.
-Frozen by
-When
-A freeze lasts
-Withdrawals it cancelled
-Backup PIN
-Today. 3:31 PM
-10 minutes
-This phone, because the backup PIN was entered.
-While frozen, nothing can leave these savings unless the owner
-and a guardian lift the freeze together.
-When the backup PIN was used
-Recorded on this phone at that moment. It stays on this
-phone.
-Time
-Phone
-System
-App version
-Public IP
-Location
-Contacts texted
-Freeze
-Today. 3:31 PM
-Google sdk_gphone64_x86_64
-Android 16
-I.O.O
-154.113.81.131
-6.5244, 3.3792 m)
-Signed by this phone
+8:30
+Protected savings
+Withdrawal requests
+0.6 SOL to BDH7...FtvR
+Can complete now
+@ Cancel this withdrawal
+O Medium risk 50
+Nest Intelligence
+New destination. BDH7... FtvR has not been used by
+these savings before today.
+A large share. 48% of what is in the vault.
+Right after a freeze. The savings were frozen or
+unfrozen in the last 24 hours.
+A withdrawal of 0.6 SOL, representing 48 % of
+the vault's balance, is pending and its protection
+window has now ended, so it can be completed
+to the new destination BDH7... FtvR unless
+cancelled. The app gave it a medium risk score
+of 50/100 because the destination is new, the
+amount is a large share of the savings, and the
+vault was frozen or unfrozen within the last
+24 hours. Check with the owner before it unlocks
+and cancel it if they did not ask for it.
+Score, signals and advice computed by the app; worded by
+Al. The program decides what is allowed.
+Protect
+Withdrawal delay
+Your last check-in
+2 minutes
+Yesterday 7:44 AM
 ```
 
-**Screenshot:** The on-device AI's explanation of the freeze and what to do next
+**Screenshot:** What-if simulator: someone steals my wallet key, needs attention, with each step, the fix to lengthen the delay, and an AI walkthrough
 
 ```text
-Time
-Phone
-System
-App version
-Why is this frozen?
-Today. 3:31 PM
-Google sdk_gphone64_x86_64
-Public IP
-Location
-Contacts texted
-Freeze
-Open map
-Android 16
-I.O.O
-154.113.81.131
-6.5244, 3.3792 m)
-Signed by this phone
-View transaction
-Explain it in plain words
-On-device Al. Runs on this phone; nothing is
-sent anywhere.
-The savings were frozen by this phone, because
-the backup PIN was entered at 3:31 PM. The freeze
-cancelled 1 pending withdrawal (0.05 SOL). No
-money left the savings. Current status: the freeze
-ended at 3:41 PM. The savings work normally again.
-What to do: let your emergency contact know you
-are okay; your savings are unchanged and work
-normally again.
-Written by Qwen3 0.6B on this phone from the facts above.
-It can make mistakes; the facts above are what the program
-recorded.
+8:50
+What if... ?
+a' C uy app HI
+only explains them.
+What if someone forces me to unlock my
+phone?
+Protected • Spending wallet only (5.0207 SOL)
+What if someone steals my wallet key or
+seed phrase?
+O
+Needs attention • Savings (0.6591 SOL) if
+nobody cancels within about 2 minutes
+An attacker gets your wallet key
+They request a withdrawal: it must wait about 2
+minutes
+They cannot skip the wait: instant withdrawals only
+go to your own safe addresses, not theirs
+Your guardian is alerted and can cancel it
+Adding their address to the safe list also waits the
+delay, and can be cancelled
+The delay is only about 2 minutes. Real savings
+should wait 24 hours or more, so there is time to
+notice.
+Nest Intelligence
+Someone steals your wallet key and immediately
+asks for a withdrawal. The request is held for about
+two minutes, during which your guardian receives
+an alert and can cancel it, and any new safe address
+you add also faces the same short delay. Because the
+waiting period is only two minutes, the attacker has a
+narrow window to succeed before the guardian can
+act. The app should increase the withdrawal delay to
+24 hours or more so you have enough time to notice
+and stop an unauthorized withdrawal.
 ```
 
 ## 8. Guardians earn SKR for staying reachable.
@@ -412,17 +411,26 @@ Program EGe3adgVvYu3He7jgbi3sKQTWrV1v9JBNxT7nGQjA4AZ (devnet), byte-identical to
 
 **Speaker notes:** Everything you've seen runs on devnet today. The program has 22 tests, run against the exact binary deployed on devnet: one has an attacker holding the owner's real key try every route to the money, and one runs guardian rewards on SKR's real mainnet mint account. On devnet there are 65 decoded transactions on the demo vaults, each linked in the repository's evidence page.
 
-## 11. From devnet to the dApp Store.
+## 11. What works today, and what comes next.
 
-Next  
-From devnet to the dApp Store.  
-- Audit, locked upgrade authority, mainnet with real SKR  
-- Guardian alerts delivered in the background  
-- Two-phone co-signing for early release  
+Built vs. next  
+What works today, and what comes next.  
+Implemented, on devnet  
+- Anchor vault: delays, safe list, freezes, delayed settings  
+- Android app with Mobile Wallet Adapter  
+- Backup PIN: silent freeze by the Keystore key, SMS, freeze report  
+- Guardians: discovery, risk-scored alerts, one-tap cancel  
+- SKR rewards, tested on SKR's real mainnet mint  
+- Nest Intelligence: risk scoring, briefings, What-if simulator  
+- 22 tests on the deployed binary, 65 devnet transactions  
+Planned  
+- Professional audit, then mainnet with real SKR  
+- Upgrade authority made immutable or a multisig  
+- Guardian alerts delivered in the background (push)  
+- AI through a server-side proxy, so no key ships in the app  
+- Owner can close a rewards pool and reclaim unspent SKR  
 - Listing on the Solana dApp Store  
-Savings that can't be rushed.  
-github.com/JayCul/nest-finance  
-Nest Finance · 11
+Nest Finance · Savings that can't be rushed · github.com/JayCul/nest-finance · 11
 
-**Speaker notes:** Next is an audit, a locked upgrade authority and mainnet with real SKR, then background guardian alerts, two-phone co-signing and a dApp Store listing. Nest Finance: savings that can't be rushed.
+**Speaker notes:** Here is exactly what is built and what is not. Built and running on devnet today: the vault with all its rules, the Android app, the backup PIN with its silent freeze and alert, guardians with risk-scored alerts, SKR rewards tested against the real SKR mint, and Nest Intelligence. Next: an audit, mainnet with real SKR, a locked upgrade authority, background push alerts for guardians, moving the AI key behind a server, and a dApp Store listing. Nest Finance: savings that can't be rushed.
 

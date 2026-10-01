@@ -11,3 +11,15 @@ export function markLocalWithdrawal(pending: string) {
 export function isLocalWithdrawal(pending: string) {
   return local.has(pending)
 }
+
+/** When this app session started, in unix seconds. */
+const sessionStart = Math.floor(Date.now() / 1000)
+
+/**
+ * Whether this phone made a withdrawal request: true if it did, false if the request appeared
+ * while the app was running but was not made here, undefined when it cannot be known.
+ */
+export function madeOnThisPhone(pending: string, requestedAt: number): boolean | undefined {
+  if (local.has(pending)) return true
+  return requestedAt > sessionStart + 5 ? false : undefined
+}

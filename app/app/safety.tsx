@@ -4,7 +4,7 @@ import React from 'react'
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { ScoreRing } from '@/components/score-ring'
-import { Card, ScreenHeader } from '@/components/ui'
+import { Card, PillButton, ScreenHeader } from '@/components/ui'
 import { colors, fonts, radius, space } from '@/constants/theme'
 import { useSafetyScore } from '@/features/vault/use-safety-score'
 
@@ -26,6 +26,13 @@ export default function SafetyScreen() {
             {todo.length === 0 ? 'Everything is in place.' : `${todo.length} thing${todo.length === 1 ? '' : 's'} left to set up.`}
           </Text>
         </Card>
+
+        <PillButton
+          title="What if…? Play attacks against your setup"
+          icon="sparkles-outline"
+          style={{ flex: 0 }}
+          onPress={() => router.push('/simulator')}
+        />
 
         {safety.checks.map((c) => (
           <Pressable

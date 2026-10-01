@@ -2,7 +2,7 @@
 
 **If someone forces you to unlock your phone, they get your spending money. Your savings can't move for days, and your guardian already knows.**
 
-Nest Finance is a savings app for Solana Mobile (Seeker). It looks like an ordinary personal finance app. Underneath, your savings sit in an on-chain vault where every withdrawal waits a delay that you, a guardian, or the app itself can cancel. A second "duress" PIN opens a normal-looking wallet showing only your spending balance, while it silently locks the vault and alerts your guardians. Afterwards, an **AI model running on the phone** explains why the savings were frozen and what to do, without sending anything off the device.
+Nest Finance is a savings app for Solana Mobile (Seeker). It looks like an ordinary personal finance app. Underneath, your savings sit in an on-chain vault where every withdrawal waits a delay that you, a guardian, or the app itself can cancel. A second "duress" PIN opens a normal-looking wallet showing only your spending balance, while it silently locks the vault and alerts your guardians. **Nest Intelligence** scores every withdrawal for risk and briefs guardians, explains each transaction before you sign it, and plays common attacks against your setup in a What-if simulator. The app computes the scores and outcomes; AI (Groq) only words them; the Solana program decides what is allowed.
 
 Built for [Clock In](https://solanamobile.radiant.nexus/), the Solana Mobile hackathon.
 
@@ -10,14 +10,14 @@ Built for [Clock In](https://solanamobile.radiant.nexus/), the Solana Mobile hac
 
 | Area | What to look at |
 |---|---|
-| **AI** | On-device AI (Qwen3 0.6B through llama.cpp) explains why savings were frozen, from the on-chain facts and the phone's state at the backup PIN. No server, no API key, nothing leaves the phone. [Section below](#why-is-this-frozen-on-device-ai), [clip](https://github.com/JayCul/nest-finance/releases/latest/download/freeze-report-demo.mp4), code in `app/features/ai/on-device.ts` |
+| **AI** | Nest Intelligence: withdrawal risk scoring with AI guardian briefings and risk-scored alerts, a transaction explainer before signing, and a What-if security simulator with free-form questions. Scores and outcomes are computed in code from on-chain state; Groq's `gpt-oss-120b` words them. [Section below](#nest-intelligence-ai), code in `app/features/intel/` and `app/features/ai/groq.ts` |
 | **Code** | This public repository: Anchor program (`programs/nest_vault`), Android app (`app/`), Kotlin SMS module (`app/modules/nest-sms`), Mobile Wallet Adapter signing (`app/features/vault/use-vault.ts`), Android Keystore sentinel key (`app/features/vault/sentinel.ts`). Map of every feature to its source: [docs/verify.md](docs/verify.md) |
 | **Tests** | 22 program tests, all passing, run against the deployed binary, including an attacker holding the owner's real key and guardian rewards on the real SKR mint: `cargo test` ([docs/verify.md](docs/verify.md)) |
 | **On-chain proof** | 65 decoded devnet transactions on the demo vaults (deposits, delayed withdrawals, guardian cancels, backup-PIN freezes signed by the phone's key, SKR-style rewards), each linked to the explorer: [docs/devnet-evidence.md](docs/devnet-evidence.md). Deployed program matches this code byte for byte ([docs/verify.md](docs/verify.md)) |
 | **SKR** | Guardian rewards paid in SKR, enforced on-chain; tested against SKR's real mainnet mint account; mainnet is a config change: [docs/skr.md](docs/skr.md) |
 | **Security** | Threat model with the test behind each defence: [docs/threat-model.md](docs/threat-model.md). Automated review triage: [docs/security-review.md](docs/security-review.md) |
 | **Deck** | [PDF](https://github.com/JayCul/nest-finance/releases/latest/download/nest-finance-deck.pdf) (text-selectable) and a [plain-text version](docs/deck.md) |
-| **Demo** | [Video](https://youtube.com/shorts/_GFJuXn5x9o) (2:50), [freeze report clip](https://github.com/JayCul/nest-finance/releases/latest/download/freeze-report-demo.mp4) (2:22), [APK](https://github.com/JayCul/nest-finance/releases/latest/download/nest-finance-devnet.apk) |
+| **Demo** | [Video](https://youtube.com/shorts/_GFJuXn5x9o) (2:50), [APK](https://github.com/JayCul/nest-finance/releases/latest/download/nest-finance-devnet.apk) |
 
 ## The problem
 
@@ -37,7 +37,6 @@ Take away the instant. Savings sit in an on-chain vault where every withdrawal w
 
 - **APK (devnet):** [nest-finance-devnet.apk](https://github.com/JayCul/nest-finance/releases/latest/download/nest-finance-devnet.apk) from the [release](https://github.com/JayCul/nest-finance/releases/latest). Install on a Seeker or any 64-bit Android phone with an MWA wallet.
 - **Demo video:** [watch on YouTube](https://youtube.com/shorts/_GFJuXn5x9o), under 3 minutes, recorded on an Android emulator with touches shown: owner tour, protected withdrawal, backup PIN, guardian alert and cancel. The voiceover script is in [docs/demo-video-script.md](docs/demo-video-script.md).
-- **Freeze report with on-device AI:** [freeze-report-demo.mp4](https://github.com/JayCul/nest-finance/releases/latest/download/freeze-report-demo.mp4) (2:22), a separate clip of the "Why is this frozen?" screen and the AI explanation. It is not in the main video, which stays under 3 minutes.
 - **Pitch deck:** [nest-finance-deck.pdf](https://github.com/JayCul/nest-finance/releases/latest/download/nest-finance-deck.pdf) (also in `docs/`), and a [plain-text version](docs/deck.md).
 - **Verify it yourself:** deployed addresses, build and test steps, proof the devnet program matches this code, and where each feature lives: [docs/verify.md](docs/verify.md).
 - **SKR integration and mainnet path:** [docs/skr.md](docs/skr.md). Security review triage: [docs/security-review.md](docs/security-review.md).
@@ -54,7 +53,7 @@ No account or sign-up. Your wallet is your identity, and PINs stay on the phone.
 4. **Create protected savings.** Tap **Start protected savings**. **Demo** timers are selected by default (withdrawals wait 2 minutes, a freeze lasts 10), so you can watch a withdrawal finish. Approve one transaction in your wallet.
 5. **Set up the backup PIN.** Home prompts you. Pick a real PIN, a backup PIN and an emergency contact, then allow texts and location. **Practice now** runs the backup PIN without freezing anything.
 6. **Try it.** Deposit, request a withdrawal and cancel it. Then lock the app (Settings, Lock app) and open it with the backup PIN: you'll see the spending-only view while your savings freeze.
-7. **See why it froze.** Lock the app again and open it with your real PIN. Home shows the savings frozen: tap the notice for the freeze report (who froze it, when, and the phone's state when the backup PIN was used), then **Explain with on-device AI**. The first time, the app downloads the AI model (about 400 MB, so use Wi-Fi); after that it runs offline. Guardians get the same report from the vault's **Why is this frozen?** button.
+7. **Try Nest Intelligence.** On Home, tap **What if…? Test your setup** to see seven attacks played against your settings, with **Walk me through it** and **Ask your own what-if**. On the withdraw screen, **Explain this transaction** before you sign. Guardians see a risk score and briefing on every pending withdrawal, and the alert itself carries the risk level. After a backup-PIN freeze, tap the frozen notice on Home for the freeze report.
 
 **Guardian mode** needs a second wallet. Put its address in the Guardian field when creating savings (or add it later, which waits the delay). Then connect that wallet, on another phone or on the same one via Settings, Disconnect, and it finds the vaults it protects automatically.
 
@@ -62,8 +61,8 @@ No account or sign-up. Your wallet is your identity, and PINs stay on the phone.
 
 - The emergency text needs a SIM. Without one, the freeze still happens and Settings records the text as failed.
 - **Guardian rewards** pay in SKR on mainnet. SKR doesn't exist on devnet, so this build uses Circle's devnet USDC as the stand-in. To try rewards, open People, tap **Get free test tokens** (it copies your address and opens faucet.circle.com), choose Solana Devnet, paste, and request USDC. One request covers the default 5-token pool.
-- The on-device AI model downloads once (about 400 MB) and resumes if the connection drops. On the emulator the explanation takes up to a minute to load and write; a real phone should be faster.
-- The APK includes 64-bit Android builds only (every Seeker and modern Android phone), to keep its size down with the AI engine included.
+- Nest Intelligence needs an internet connection; without one, the scores, signals and simulator outcomes still show, computed on the phone.
+- The APK includes 64-bit Android builds only (every Seeker and modern Android phone).
 - Devnet can be slow or rate-limited at times. Pull down to refresh any screen.
 
 ## How the vault works
@@ -97,7 +96,8 @@ app/                     Android app (Expo, React Native, @solana/kit, Mobile Wa
   features/vault/        data layer: queries, actions, sentinel key, withdrawal watcher
   generated/nest-vault/  typed client generated from the IDL with Codama
   features/security/     PINs, session lock, duress actions (lockdown, SMS, device context)
-  features/ai/           on-device AI: model download and llama.cpp inference
+  features/intel/        risk scoring and the What-if simulator (deterministic)
+  features/ai/           Groq client: wording only, key decrypted at runtime
   features/stipend/      guardian rewards (SKR)
   modules/nest-sms/      local Expo module (Kotlin) that sends SMS with no UI
 scripts/demo/            scripted emulator recordings and video assembly
@@ -115,19 +115,19 @@ Both PINs open the same app through the same screen and take the same time. The 
 
 Unlocking later with the real PIN shows what happened: the frozen notice on Home opens the freeze report, and Settings keeps a record of each use. Practice mode runs the same flow without freezing anything and marks the text as a drill.
 
-## Why is this frozen? (on-device AI)
+## Nest Intelligence (AI)
 
-When savings are frozen, the owner (tap the frozen notice on Home, or the backup-PIN record in Settings) and each guardian (the vault's "Why is this frozen?" button) get a freeze report:
+**The principle: AI explains, detects, simulates and recommends; the Solana program decides what is allowed.** Every score, signal, scenario outcome and recommended action is computed in code from on-chain state (`app/features/intel/`). A model on Groq (`openai/gpt-oss-120b`, falling back to `gpt-oss-20b`) only turns those facts into plain sentences, and is told to repeat the app's recommended action, not invent its own. Without a connection, everything except the wording still works.
 
-- **The on-chain facts:** who froze it (owner, a guardian, or this phone's backup PIN), when, when it ends, and which pending withdrawals it cancelled, read from the program's lockdown event.
-- **When the backup PIN caused it, the phone's state at that moment:** phone model, system and app version, public IP, GPS coordinates with accuracy, contacts texted, and a link to the freeze transaction. The public IP comes from Cloudflare's trace endpoint (no account or key); everything else is read on the phone. It is all stored on the phone only.
-- **A plain-language explanation written by an AI model running on the phone:** Qwen3 0.6B (4-bit, 397 MB, downloaded once from Hugging Face on first use) through llama.cpp (`llama.rn`). It is given only the facts above and asked to explain the freeze. The suggested next step is chosen in code for each case (backup PIN, guardian freeze, owner freeze; frozen or ended) and the model only rephrases it, so a small model cannot give unsafe advice. The facts on screen are what the program recorded; the explanation carries a note that it can make mistakes.
+- **Withdrawal risk scoring and guardian briefings.** Each pending withdrawal gets a 0–100 score from signals: a destination never used by these savings (or the owner's own wallet or safe address, which lower it), the share of savings it takes, size against past withdrawals, several requests at once, coming right after a freeze, and, on the owner's phone, whether this phone made the request. Guardians see the score, the signals and an AI briefing under each request, and the alert notification itself says "High risk" with the top reasons. Owners see the same on the withdrawal screen, which is where a "Was this you?" alert lands. Code: `withdrawal-risk.ts`, `components/risk-briefing.tsx`.
+- **Transaction explainer.** On the withdraw screen, before the wallet opens: what the transaction does, when the money moves, who can stop it, and the risk score, worded by AI on request. Code: `app/withdraw.tsx`.
+- **What-if simulator.** Seven attacks played against the owner's real configuration: forced unlock, stolen wallet key, malicious signature, lost phone, unreachable guardian, malicious guardian, settings tampering. Each shows the chain of events, what could be lost, and what to fix (with a link to fix it). AI summarises the results, walks through any scenario, and answers free-form "what if" questions from the configuration, the program's rules and the scenario results. Code: `simulator.ts`, `app/simulator.tsx`.
 
-[Watch the clip](https://github.com/JayCul/nest-finance/releases/latest/download/freeze-report-demo.mp4): unlock with the real PIN after a backup-PIN freeze, open the report, and let the model explain it. On the emulator the model takes under a minute to load and write its answer.
+**What is sent to Groq:** only the facts on screen: amounts, durations, counts, roles, risk signals and short addresses (`9Sbx…ASmp`). Never keys, full addresses, location, IP, device details or PINs.
 
-**Why on-device and not a cloud model.** A cloud API key cannot be kept secret in a public APK: however it is encrypted, the app must decrypt it to use it, so anyone can extract it and bill calls to the owner of the key. And a freeze report holds the owner's location and IP from the moment they were coerced, which should not be sent to a third party. Running the model on the phone removes both problems: no server, no key, and nothing leaves the device. Code: `app/features/ai/on-device.ts` (download and inference), `app/features/vault/freeze-report.ts` (facts and prompt), `app/app/freeze-report.tsx` (the screen), `app/features/security/duress.ts` (device context).
+**The API key.** It lives in `app/.env.local` (git-ignored, never in this repository). `npm run groq:key` encrypts it with AES-256-GCM under a key derived with SHA-256, and only the ciphertext is built into the app, which decrypts it at run time (`app/features/ai/groq.ts`). This keeps it out of the APK as plain text, but anyone determined can still recover it from the app, so the key is a dedicated one with a spending limit, to be rotated after judging.
 
-**Model download.** The model comes from [Hugging Face](https://huggingface.co/unsloth/Qwen3-0.6B-GGUF) in 4 MB ranges, each retried on its own; the partial file is kept, so an interrupted download resumes where it stopped. The finished file is checked for its exact size and GGUF header before use. Nothing else is sent: the request carries no user data.
+**Freeze report.** After a freeze, the owner (tap the frozen notice on Home) and each guardian (the vault's **Why is this frozen?** button) see who froze it, when, what it cancelled and when it ends, and, if the backup PIN caused it, the phone's state at that moment (model, system, public IP, GPS). That report stays on the phone and is never sent to the AI.
 
 ## Guardians
 
@@ -156,7 +156,7 @@ Release APK: `npx expo prebuild -p android` then `gradlew assembleRelease` in `a
 
 ### Recording the demo
 
-`scripts/demo/01` to `04` drive the emulator over adb and record each segment with `screenrecord`, with Show taps turned on (`adb shell settings put system show_touches 1`). `scripts/demo/assemble.sh` trims and joins them into the main video, and `scripts/demo/place-voiceover.py` times a voiceover to it line by line. `05-freeze-report.sh` records the separate freeze-report clip (the AI model must already be downloaded). Segment 1 needs the mock wallet holding the guardian key, the others the owner key (`scripts/mock-wallet-key.sh`).
+`scripts/demo/01` to `04` drive the emulator over adb and record each segment with `screenrecord`, with Show taps turned on (`adb shell settings put system show_touches 1`). `scripts/demo/assemble.sh` trims and joins them into the main video, and `scripts/demo/place-voiceover.py` times a voiceover to it line by line. Segment 1 needs the mock wallet holding the guardian key, the others the owner key (`scripts/mock-wallet-key.sh`).
 
 ## Build and test
 
@@ -184,7 +184,8 @@ Program ID (devnet): `EGe3adgVvYu3He7jgbi3sKQTWrV1v9JBNxT7nGQjA4AZ`
 - [x] Phase 4: guardian mode (auto-discovery of vaults you protect, alerts, cancel, freeze, check-in, QR invites)
 - [x] Phase 5: SKR guardian rewards (on-chain stipend pool, 8-day accrual cap), safety score
 - [x] Phase 6: submission (release APK, demo video, pitch deck, verification guide)
-- [x] Freeze report with an on-device AI explanation
+- [x] Nest Intelligence: risk scoring, guardian briefings, transaction explainer, What-if simulator
+- [x] Freeze report
 
 ## Limits
 
@@ -192,4 +193,4 @@ Program ID (devnet): `EGe3adgVvYu3He7jgbi3sKQTWrV1v9JBNxT7nGQjA4AZ`
 - Whoever holds the program's upgrade authority could change these rules. Before any mainnet use it must be made immutable or put behind a multisig.
 - The delay protects savings, not the spending wallet. The decoy balance is meant to be handed over.
 - The app's guidance is always to comply. It is designed to end an encounter quickly, not to resist.
-- The AI explanation comes from a small model and can phrase things imperfectly. The report's facts are always shown alongside it, and the next step it gives is chosen in code.
+- AI wording can be imperfect. The computed facts are always shown beside it, and its recommended actions come from code. The Groq key in the APK is obfuscated, not secret.
