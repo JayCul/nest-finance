@@ -14,11 +14,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "demo-recordings"
-VIDEO = OUT / "nest-finance-demo.mp4"
+# The captioned cut (scripts/demo/make-captions.py) when it exists, else the plain one.
+VIDEO = OUT / "nest-finance-demo-captioned.mp4"
+if not VIDEO.exists():
+    VIDEO = OUT / "nest-finance-demo.mp4"
 SCRIPT = ROOT / "docs" / "voiceover-elevenlabs.txt"
 # Where each line starts in the video, in seconds (docs/demo-video-script.md).
-START = [0.0, 8.5, 12.5, 20.0, 30.0, 41.0, 47.0, 56.5, 66.5, 77.0, 84.5, 95.0, 102.5, 114.0, 124.7,
-         131.0, 138.0, 147.5, 155.0, 162.5, 166.0]
+START = [0.0, 8.5, 15.5, 27.0, 35.0, 46.5, 53.0, 61.0, 68.5, 75.0, 81.0, 91.0, 104.0, 112.5, 125.0,
+         134.0, 143.5, 153.5, 160.5]
 
 
 def ffprobe_duration(path):

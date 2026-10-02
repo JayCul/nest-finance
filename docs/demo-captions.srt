@@ -1,0 +1,119 @@
+1
+00:00:00,000 --> 00:00:05,429
+A Seeker tells people you hold crypto. Nest Finance keeps your savings safe,
+
+2
+00:00:05,429 --> 00:00:08,500
+even if you're forced to unlock your phone.
+
+3
+00:00:08,500 --> 00:00:14,128
+Your protected savings sit in a vault on Solana, and the safety score flags
+
+4
+00:00:14,128 --> 00:00:15,254
+what's missing.
+
+5
+00:00:15,500 --> 00:00:20,715
+Moving money in takes one tap, and one approval in your wallet.
+
+6
+00:00:27,000 --> 00:00:32,020
+Taking it out is different. Before you sign, Nest Intelligence scores the
+
+7
+00:00:32,020 --> 00:00:34,908
+withdrawal and explains it in plain words.
+
+8
+00:00:35,000 --> 00:00:41,704
+Low risk: it goes to your own wallet. The app computes the score. AI only puts
+
+9
+00:00:41,704 --> 00:00:42,908
+it into words.
+
+10
+00:00:46,500 --> 00:00:52,869
+Every withdrawal waits a delay you choose, so you or a guardian can cancel it.
+
+11
+00:00:53,000 --> 00:00:59,369
+Every step is on-chain, and guardians earn SKR each week they check in.
+
+12
+00:01:01,000 --> 00:01:06,799
+Now, the moment Nest was built for. Someone makes you open the app, and you
+
+13
+00:01:06,799 --> 00:01:08,500
+enter your backup PIN.
+
+14
+00:01:08,500 --> 00:01:14,277
+It opens an ordinary wallet. Real spending money, real history, and no savings
+
+15
+00:01:14,277 --> 00:01:14,869
+to find.
+
+16
+00:01:15,000 --> 00:01:20,215
+Every tab works as you'd expect, so nothing looks out of place.
+
+17
+00:01:21,000 --> 00:01:25,962
+Meanwhile, the phone's own key has frozen your savings on-chain, and your
+
+18
+00:01:25,962 --> 00:01:29,292
+emergency contact gets a text with your location.
+
+19
+00:01:31,000 --> 00:01:36,667
+Later, your real PIN shows your savings frozen, and Settings records when the
+
+20
+00:01:36,667 --> 00:01:38,138
+backup PIN was used.
+
+21
+00:01:44,000 --> 00:01:49,739
+This is the guardian's phone. A large withdrawal to a new address is requested,
+
+22
+00:01:49,739 --> 00:01:52,500
+and the alert already says: high risk.
+
+23
+00:01:52,500 --> 00:01:59,125
+The app scored it 60 out of 100: a new destination, and 91% of the savings. Nest
+
+24
+00:01:59,125 --> 00:02:03,100
+Intelligence briefs the guardian in plain words.
+
+25
+00:02:05,000 --> 00:02:08,677
+One tap cancels it. The money never moved.
+
+26
+00:02:14,000 --> 00:02:19,800
+The What-if simulator plays seven attacks against your real setup, and AI says
+
+27
+00:02:19,800 --> 00:02:21,138
+what to fix first.
+
+28
+00:02:23,500 --> 00:02:29,869
+Here, a stolen key: the app shows each step, and AI walks you through it.
+
+29
+00:02:33,500 --> 00:02:38,715
+You can ask your own what-if, too. AI explains. The program decides.
+
+30
+00:02:40,500 --> 00:02:43,792
+Nest Finance. Savings that can't be rushed.

@@ -8,21 +8,23 @@ CUTS=(
   "02-owner-tour ${T02:-0-999}"
   "03-protected-withdrawal ${T03:-0-999}"
   "04-duress ${T04:-0-999}"
-  "01-guardian-alert ${T01:-0-999}"
+  "06-guardian-ai ${T06:-0-999}"
+  "07-owner-ai ${T07:-0-999}"
 )
 
 list=parts.txt; : > "$list"; n=0
 for c in "${CUTS[@]}"; do
   read -r name ranges <<< "$c"
+  # screenrecord writes frames only when the screen changes. Convert to constant 30 fps first
+  # (repeating frames through still stretches) so cut points land where they say.
+  [ "$name.cfr.mp4" -nt "$name.mp4" ] || ffmpeg -v error -y -i "$name.mp4" -vf fps=30 -c:v libx264 -preset fast -crf 16 -pix_fmt yuv420p -an "$name.cfr.mp4"
   for r in $ranges; do
     n=$((n + 1)); part=$(printf 'part-%02d.mp4' "$n")
     # Re-encode each part to the same size, rate and codec so the concat is seamless.
     start=${r%-*}; dur=$(awk "BEGIN { print ${r#*-} - $start }")
-    # screenrecord writes no frames while the screen is still, so a clip can end early.
-    # A range past the end holds the last frame for the difference.
-    len=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$name.mp4")
-    hold=$(awk "BEGIN { h = ${r#*-} - $len; print (h > 0 ? h : 0) }")
-    ffmpeg -v error -y -ss "$start" -i "$name.mp4" -t "$dur" \
+    # A range past the end of the clip holds the last frame.
+    hold=$dur
+    ffmpeg -v error -y -ss "$start" -i "$name.cfr.mp4" -t "$dur" \
       -vf "tpad=stop_mode=clone:stop_duration=$hold,scale=1080:2400:force_original_aspect_ratio=decrease,pad=1080:2400:(ow-iw)/2:(oh-ih)/2,fps=30" \
       -c:v libx264 -preset medium -crf 20 -pix_fmt yuv420p -an "$part"
     echo "file '$part'" >> "$list"

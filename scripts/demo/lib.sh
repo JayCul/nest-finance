@@ -24,8 +24,8 @@ tab() { # Home Activity People Settings
 # dump are sometimes dropped, so wait for the wallet to come up and retry the trigger once.
 wallet_up() { adb shell dumpsys activity activities | grep -q "topResumedActivity.*mwallet"; }
 approve() {
-  for i in 1 2 3 4 5 6; do wallet_up && break; sleep 1; done
-  if ! wallet_up && [ -n "$LAST_TAP" ]; then adb shell input tap $LAST_TAP; for i in 1 2 3 4 5 6; do wallet_up && break; sleep 1; done; fi
+  for i in $(seq 1 30); do wallet_up && break; sleep 1; done
+  if ! wallet_up && [ -n "$LAST_TAP" ]; then adb shell input tap $LAST_TAP; for i in $(seq 1 30); do wallet_up && break; sleep 1; done; fi
   # Fixed spot: uiautomator can't read the wallet sheet. The pause lets the app icon load on camera.
   pause 5; tap 814 2190; pause "${1:-12}"
 }

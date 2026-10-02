@@ -1,41 +1,37 @@
 A Seeker tells people you hold crypto. Nest Finance keeps your savings safe, even if you're forced to unlock your phone.
-<break time="0.5s" />
-It opens with a PIN, like any banking app.
-<break time="0.5s" />
-Your spending wallet and your protected savings sit side by side, and the protection card shows the rules.
-<break time="0.5s" />
-The safety score checks your setup and flags what's missing.
-<break time="3.0s" /> <break time="3.0s" />
-Moving money into savings takes one tap, and one approval in your wallet.
-<break time="3.0s" /> <break time="3.0s" />
-Done. It's now in a vault on Solana that only releases money slowly.
 <break time="1.0s" />
-Taking money out is different. Every withdrawal waits a delay you choose, normally one to seven days. This demo uses two minutes.
+Your protected savings sit in a vault on Solana, and the safety score flags what's missing.
 <break time="1.0s" />
-Until the countdown ends, you or your guardian can cancel it. A drainer, or someone standing over you, gets a queued request, not your money.
-<break time="0.5s" />
-Every step is recorded on-chain. Your guardian earns S K R each week they check in, so they stay reachable.
-<break time="3.0s" />
-Now, the moment Nest was built for. Someone makes you open the app. You enter your backup PIN.
-<break time="0.5s" />
-It opens an ordinary-looking wallet. Real spending money, real history. No savings, no guardians, nothing to find.
-<break time="3.0s" /> <break time="1.0s" />
-Every tab works exactly as you'd expect, so nothing looks out of place.
-<break time="2.5s" />
-Meanwhile, the phone's own key has already frozen your savings on-chain, with no wallet prompt. And your emergency contact gets a text with your location.
-<break time="2.0s" />
-Later, your real PIN shows what happened. Your savings are frozen, and Settings keeps a record of when the backup PIN was used, and who was told.
-<break time="0.5s" />
-Nothing leaves until the freeze ends, unless you and a guardian lift it together.
+Moving money in takes one tap, and one approval in your wallet.
 <break time="1.0s" />
-This is the guardian's phone. Same app, their own wallet. Nest finds the savings they protect automatically.
-<break time="0.5s" />
-Now a withdrawal is requested from somewhere else, the way a drainer or a coerced signature would. Within seconds, the guardian is alerted.
-<break time="0.5s" />
-They can see exactly what's leaving, and when.
-<break time="3.0s" /> <break time="1.5s" />
-One tap. One approval.
-<break time="3.0s" /> <break time="3.0s" />
-It's cancelled. The money never moved.
+Taking it out is different. Before you sign, Nest Intelligence scores the withdrawal and explains it in plain words.
+<break time="1.0s" />
+Low risk: it goes to your own wallet. The app computes the score. AI only puts it into words.
+<break time="1.0s" />
+Every withdrawal waits a delay you choose, so you or a guardian can cancel it.
+<break time="1.0s" />
+Every step is on-chain, and guardians earn S K R each week they check in.
+<break time="1.0s" />
+Now, the moment Nest was built for. Someone makes you open the app, and you enter your backup PIN.
+<break time="1.0s" />
+It opens an ordinary wallet. Real spending money, real history, and no savings to find.
+<break time="1.0s" />
+Every tab works as you'd expect, so nothing looks out of place.
+<break time="1.0s" />
+Meanwhile, the phone's own key has frozen your savings on-chain, and your emergency contact gets a text with your location.
+<break time="1.0s" />
+Later, your real PIN shows your savings frozen, and Settings records when the backup PIN was used.
+<break time="1.0s" />
+This is the guardian's phone. A large withdrawal to a new address is requested, and the alert already says: high risk.
+<break time="1.0s" />
+The app scored it sixty out of a hundred: a new destination, and ninety-one percent of the savings. Nest Intelligence briefs the guardian in plain words.
+<break time="1.0s" />
+One tap cancels it. The money never moved.
+<break time="1.0s" />
+The What-if simulator plays seven attacks against your real setup, and AI says what to fix first.
+<break time="1.0s" />
+Here, a stolen key: the app shows each step, and AI walks you through it.
+<break time="1.0s" />
+You can ask your own what-if, too. AI explains. The program decides.
 <break time="1.0s" />
 Nest Finance. Savings that can't be rushed.
