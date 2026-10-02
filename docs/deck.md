@@ -1,6 +1,6 @@
 # Nest Finance: pitch deck (text version)
 
-A plain-text version of the pitch deck ([PDF](https://cdn.jsdelivr.net/gh/JayCul/nest-finance@v0.3.1-devnet/docs/nest-finance-deck.pdf)): each slide's text, its speaker notes, and a description of each screenshot with its text read by OCR (machine-read, so it may contain small errors).
+A plain-text version of the pitch deck ([PDF](https://cdn.jsdelivr.net/gh/JayCul/nest-finance@4a68e2829fc8/docs/nest-finance-deck.pdf)): each slide's text, its speaker notes, and a description of each screenshot with its text read by OCR (machine-read, so it may contain small errors).
 
 ## 1. Nest Finance
 

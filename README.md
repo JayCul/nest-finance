@@ -18,7 +18,7 @@ Everything in one page, with the deployed hash, on-chain IDL and test output: **
 | **On-chain proof** | 65 decoded devnet transactions on the demo vaults (deposits, delayed withdrawals, guardian cancels, backup-PIN freezes signed by the phone's key, SKR-style rewards), each linked to the explorer: [docs/devnet-evidence.md](docs/devnet-evidence.md). Deployed program matches this code byte for byte ([docs/verify.md](docs/verify.md)) |
 | **SKR** | Guardian rewards paid in SKR, enforced on-chain; tested against SKR's real mainnet mint account; mainnet is a config change: [docs/skr.md](docs/skr.md). Step-by-step devnet trace of funding, claims, the accrual formula and heartbeats: [docs/skr-trace.md](docs/skr-trace.md) |
 | **Security** | Security model (who can sign each instruction, freeze rules, why the delay cannot be bypassed, compromise cases): [docs/security-model.md](docs/security-model.md). Threat model with the test behind each defence: [docs/threat-model.md](docs/threat-model.md). Automated review triage: [docs/security-review.md](docs/security-review.md) |
-| **Deck** | [PDF](https://cdn.jsdelivr.net/gh/JayCul/nest-finance@v0.3.1-devnet/docs/nest-finance-deck.pdf) (17 slides, opens in the browser, text-selectable; also in `docs/`) and a [plain-text version](docs/deck.md) |
+| **Deck** | [PDF](https://cdn.jsdelivr.net/gh/JayCul/nest-finance@4a68e2829fc8/docs/nest-finance-deck.pdf) (17 slides, opens in the browser, text-selectable; also in `docs/`) and a [plain-text version](docs/deck.md) |
 | **Demo** | [Video](https://youtube.com/shorts/OfqEbHQXAuE) (3:00, ending on a real phone with Phantom; see [device testing](EVIDENCE.md#device-testing)), [APK](https://github.com/JayCul/nest-finance/releases/latest/download/nest-finance-devnet.apk) |
 
 ## The problem
@@ -39,7 +39,7 @@ Take away the instant. Savings sit in an on-chain vault where every withdrawal w
 
 - **APK (devnet):** [nest-finance-devnet.apk](https://github.com/JayCul/nest-finance/releases/latest/download/nest-finance-devnet.apk) from the [release](https://github.com/JayCul/nest-finance/releases/latest). Install on a Seeker or any 64-bit Android phone with an MWA wallet.
 - **Demo video:** [watch on YouTube](https://youtube.com/shorts/OfqEbHQXAuE), 3:00. On an Android emulator with touches shown: owner tour, a withdrawal explained by Nest Intelligence, the backup PIN, a risk-scored guardian alert and briefing, and the What-if simulator. The last 15 seconds are the same APK on a real phone with Phantom, ending on the emergency SMS. The voiceover script is in [docs/demo-video-script.md](docs/demo-video-script.md).
-- **Pitch deck:** [nest-finance-deck.pdf](https://cdn.jsdelivr.net/gh/JayCul/nest-finance@v0.3.1-devnet/docs/nest-finance-deck.pdf) (also in `docs/`), and a [plain-text version](docs/deck.md).
+- **Pitch deck:** [nest-finance-deck.pdf](https://cdn.jsdelivr.net/gh/JayCul/nest-finance@4a68e2829fc8/docs/nest-finance-deck.pdf) (also in `docs/`), and a [plain-text version](docs/deck.md).
 - **Verify it yourself:** deployed addresses, build and test steps, proof the devnet program matches this code, and where each feature lives: [docs/verify.md](docs/verify.md).
 - **SKR integration and mainnet path:** [docs/skr.md](docs/skr.md). Security review triage: [docs/security-review.md](docs/security-review.md).
 
