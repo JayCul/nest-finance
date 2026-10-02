@@ -14,11 +14,21 @@ Clock In · Solana Mobile Hackathon · github.com/JayCul/nest-finance
 **Screenshot:** Nest Finance lock screen on a phone
 
 ```text
-9:33
+8:02
 Nest Finance
 Enter your PIN
 Unlock to see your accounts
+1
+4
+7
 0000
+2
+5
+8
+O
+3
+6
+9
 ```
 
 ## 2. A Seeker in your hand says you hold crypto.
@@ -162,78 +172,81 @@ Nest Finance · 8
 
 **Speaker notes:** If you're forced to open the app, enter your backup PIN. It opens what looks like a normal wallet with only your spending money, all real data. Behind the scenes the phone's own key freezes your savings with no wallet prompt, and your emergency contact gets a text with your location.
 
-**Screenshot:** Normal view with protected savings
+**Screenshot:** Normal view: protected balance of 0.66 SOL with the withdrawal delay, spending and protected savings accounts
 
 ```text
-r. -10
+8:00
 Hi there
 HGqR...bHR3
 Protected Balance
-$59.15
-0.5 SOL Protected • 2m
+$80.38
+0.6605 SOL Protected • 2m
 + Deposit
 Accounts
 6
 Spending O
-$57.64
-0.487 SOL
+$610.84
+5.019 SOL
 Protection
+Withdraw
+2m protection
+View All >
+Protected Savings
+$80.38
+0.661 SOL
+80
 Savings protection
 Active
 Withdrawal delay
 Guardians
 Safe addresses
-Withdraw
-2m protection
-View All >
-Protected Savings
-$59.15
-0.5 SOL
+Safety score
 2 minutes
 1 connected
-oo
 Home
 Activity
-Guardians
+oo
+People
 Settings
 ```
 
-**Screenshot:** Backup PIN view showing only the spending wallet
+**Screenshot:** Backup PIN view: an ordinary wallet showing only the 5.02 SOL spending wallet and its real transactions
 
 ```text
+8:16
 Hi there
 HGqR...bHR3
 Total Balance
-$80.94
-0.6859 SOL
+$608.49
+5.0179 SOL
 'Tx Send
 Accounts
 6
 Main Wallet
-$80.94
-0.686 SOL
+$608.49
+5.018 SOL
 Recent Transactions
-Received
-Today • 5:16 PM
 Sent
-Today • 5:13 PM
+Today • 8:09 AM
 Sent
-Today • 5:13 PM
+Today • 7:30 AM
+Sent
+Yesterday 8:27
 Receive
 View All >
 USDC
 $0.00
 O.OOUSDC
 View All >
-+0.2SOL
+-0.001 SOL
+Wallet
+-0.001 SOL
 Wallet
 -0.001 SOL
 Home
 Activity
 oo
 People
-Wallet
--O.5SOL
 Wallet
 Settings
 ```
@@ -252,45 +265,50 @@ Nest Finance · 9
 
 **Speaker notes:** A guardian opens the same app with their own wallet, and Nest finds every vault that lists them. When a withdrawal is requested, maybe by a drainer, maybe under pressure, the guardian gets an alert and can cancel it before the delay runs out.
 
-**Screenshot:** Guardian alert: withdrawal requested
+**Screenshot:** Guardian alert: Withdrawal requested, High risk, 0.6 SOL from savings you protect
 
 ```text
-7:10 Tue, sep 29
+8:09 Fri, Oct 2
 Internet
 Flashlight
-Bluetooth
-Modes
-Withdrawal requested • now n
-0.05 SOL from savings you protect for HG...
-Silent
-Physical keyboards configured • 1m
-Tap to view keyboards
+* Bluetooth
+e Modes
+Withdrawal requested • High risk • now n
+0.6 SOL from savings you protect for HGq...
 Manage
 Clear all
 ```
 
-**Screenshot:** Guardian view with a cancel button
+**Screenshot:** Guardian view: 0.6 SOL leaving in 1:35 with a Cancel button, High risk 60 and the AI briefing
 
 ```text
-04 •
+8:09
 Protected savings
 HGqR25...jobHR3's savings
-$35,63
-0.3014 SOL • Protected
+$80,26
+0.6605 SOL • Protected
 Withdrawal requests
-0.05 SOL to 9Sbx...ASmp
 O
+0.6 SOL to 2By2...vylc
 Leaves in
 @ Cancel this withdrawal
+A High risk 60
+Nest Intelligence
+New destination. 2By2...vy1c has not been used by
+these savings before today.
+Most of the savings. 91% of what is in the vault.
+A withdrawal of 0.6 SOL is scheduled to unlock
+in less than an hour, and you can cancel it any
+time before it unlocks, though cancellation does
+not move any money. The app gave it a high risk
+score of 60/100 because the destination address
+is new and the amount represents 91 % of the
+vault's balance. Confirm with the owner through
+a trusted channel before it unlocks; if you cannot,
+cancel it.
+Score, signals and advice computed by the app; worded by
+Al. The program decides what is allowed.
 Protect
-Withdrawal delay
-Your last check-in
-V/ Checkin
-2 minutes
-Today. 5:11 PM
-* Freeze their savings
-Name
-Who is this? (only on your phone)
 ```
 
 ## 10. AI explains, scores and simulates. The program decides.
@@ -307,55 +325,49 @@ Nest Finance · 10
 
 **Speaker notes:** Nest Intelligence makes the security understandable. Every withdrawal is scored for risk from on-chain signals, like a destination never used before or most of the savings leaving at once, and guardians get a plain-language briefing, with the risk level right in the alert. Before signing, the owner sees what the transaction does. And the What-if simulator plays seven attacks against the owner's real setup and says what to fix. The principle: the app computes the scores and outcomes, AI only words them, and the Solana program decides what is allowed.
 
-**Screenshot:** Guardian view of a pending 0.6 SOL withdrawal: Medium risk 50, signals New destination, A large share, Right after a freeze, and an AI briefing advising to check with the owner
+**Screenshot:** Guardian briefing: High risk 60, signals New destination and Most of the savings (91%), and an AI briefing advising to confirm with the owner or cancel
 
 ```text
-8:30
+8:10
 Protected savings
-Withdrawal requests
-0.6 SOL to BDH7...FtvR
-Can complete now
-@ Cancel this withdrawal
-O Medium risk 50
+A High risk • 60
 Nest Intelligence
-New destination. BDH7... FtvR has not been used by
+New destination. 2By2...vy1c has not been used by
 these savings before today.
-A large share. 48% of what is in the vault.
-Right after a freeze. The savings were frozen or
-unfrozen in the last 24 hours.
-A withdrawal of 0.6 SOL, representing 48 % of
-the vault's balance, is pending and its protection
-window has now ended, so it can be completed
-to the new destination BDH7... FtvR unless
-cancelled. The app gave it a medium risk score
-of 50/100 because the destination is new, the
-amount is a large share of the savings, and the
-vault was frozen or unfrozen within the last
-24 hours. Check with the owner before it unlocks
-and cancel it if they did not ask for it.
+Most of the savings. 91% of what is in the vault.
+A withdrawal of 0.6 SOL is scheduled to unlock
+in less than an hour, and you can cancel it any
+time before it unlocks, though cancellation does
+not move any money. The app gave it a high risk
+score of 60/100 because the destination address
+is new and the amount represents 91 % of the
+vault's balance. Confirm with the owner through
+a trusted channel before it unlocks; if you cannot,
+cancel it.
 Score, signals and advice computed by the app; worded by
 Al. The program decides what is allowed.
 Protect
 Withdrawal delay
 Your last check-in
+Rewards
 2 minutes
-Yesterday 7:44 AM
+Sep 30 • 7:44 AM
+10 SKR/week
+V/ Checkin & collect 2.88 SKR
+* Freeze their savings
+Name
+Who is this? (only on your phone)
 ```
 
 **Screenshot:** What-if simulator: someone steals my wallet key, needs attention, with each step, the fix to lengthen the delay, and an AI walkthrough
 
 ```text
-8:50
+8:04
 What if... ?
-a' C uy app HI
-only explains them.
-What if someone forces me to unlock my
-phone?
-Protected • Spending wallet only (5.0207 SOL)
 What if someone steals my wallet key or
 seed phrase?
 O
-Needs attention • Savings (0.6591 SOL) if
+Needs attention • Savings (0.6605 SOL) if
 nobody cancels within about 2 minutes
 An attacker gets your wallet key
 They request a withdrawal: it must wait about 2
@@ -371,14 +383,18 @@ notice.
 Nest Intelligence
 Someone steals your wallet key and immediately
 asks for a withdrawal. The request is held for about
-two minutes, during which your guardian receives
-an alert and can cancel it, and any new safe address
-you add also faces the same short delay. Because the
-waiting period is only two minutes, the attacker has a
-narrow window to succeed before the guardian can
-act. The app should increase the withdrawal delay to
-24 hours or more so you have enough time to notice
-and stop an unauthorized withdrawal.
+two minutes, during which your guardian receives an
+alert and can cancel it, and any new safe address they
+add also faces the same short delay. Because the
+waiting period is only two minutes, there is little time
+to notice and stop the theft. The app should increase
+the withdrawal delay to 24 hours or more to give you
+enough time to react.
+What if I sign a malicious transaction?
+Needs attention • Savings could leave after
+about 2 minutes if nobody notices
+What if I lose my phone?
+Protected Nothing from savings
 ```
 
 ## 11. The app decides. Groq only words what it decided.
@@ -425,13 +441,17 @@ Nest Finance · 12
 **Screenshot:** Guardian rewards card: 10 SKR per week
 
 ```text
-9:36
+8:04
+Guardians
+People who protect your savings
+A guardian can stop a withdrawal or freeze your
+savings. They can never take money out.
 Your guardians
 o
 27WB8w...wAoKn7
-Last check-in Today 7:13 PM
-+0 Add or change guardians
 Active
+Last check-in Sep 30 7:44 AM
++0 Add or change guardians
 Guardian changes take effect after your withdrawal delay.
 Guardian rewards
 Pay guardians in SKR for staying reachable. They
@@ -440,13 +460,13 @@ week and that week is forfeited.
 Each guardian earns
 Rewards pool
 Covers
-+ Topup50SKR
++ Topup5SKR
 People you protect
 10 SKR/week
-100 SKR
-IO weeks
-Nobody has added you as a guardian yet.
-My guardian code
+89.4 SKR
+8 weeks
+Nobody has add
+s a guardian yet.
 Home
 Activity
 People
@@ -456,11 +476,12 @@ Settings
 **Screenshot:** Safety score of 80
 
 ```text
-9:36
+8:05
 Safety score
 80
 Good, with gaps
 1 thing left to set up.
+What if... ? Play attacks against your setup
 Withdrawals wait at least 24 hours
 Long enough for you or a guardian to
 notice and cancel.
@@ -475,12 +496,10 @@ Emergency contact for alerts
 Gets a text with your location if the backup PIN
 is used.
 Guardians checked in this week
-A guardian who has gone quiet may not see an
-alert in time.
+A •nrAinn hoe
 +20
 +15
 +10
-+15
 ```
 
 ## 13. A full reward cycle, traced on devnet.

@@ -3,6 +3,7 @@
 # the backup PIN shows an ordinary wallet while the savings freeze and a text goes out, then the
 # real PIN shows what happened.
 source "$(dirname "$0")/lib.sh"
+shot() { [ -n "$SHOTS" ] && adb exec-out screencap -p > "$SHOTS/$1.png"; }
 
 # Fresh location for the text. The emulator's GPS ignores `geo fix` while nothing is listening,
 # so set it through Android's test provider (emulator only).
@@ -17,6 +18,7 @@ adb shell monkey -p com.nestfinance.app -c android.intent.category.LAUNCHER 1 >/
 pause 4                                   # lock screen
 pin 9999 109                              # backup PIN
 pause 3                                   # ordinary wallet: spending only
+shot decoy
 tab Activity; pause 2.5
 tab People; pause 2
 tab Settings; pause 2
