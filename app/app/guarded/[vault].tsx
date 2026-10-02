@@ -39,7 +39,7 @@ function GuardianBriefing({
     amount: pending.amount,
     destination: pending.destination,
     requestedAt: pending.requestedAt,
-    available: vault.available + pending.amount,
+    available: vault.available, // pending withdrawals stay in the vault until executed
     safeList: vault.safeList,
     ownerWallet: vault.owner,
     history: events,

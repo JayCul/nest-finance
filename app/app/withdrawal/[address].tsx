@@ -56,7 +56,7 @@ export default function PendingWithdrawalScreen() {
     amount: item.amount,
     destination: item.destination,
     requestedAt: item.requestedAt,
-    available: v.available + item.amount,
+    available: v.available, // pending withdrawals stay in the vault until executed
     safeList: v.safeList,
     ownerWallet: v.owner,
     history: activity.data ?? [],

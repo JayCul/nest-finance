@@ -34,9 +34,13 @@ anchor build --arch v1
 cargo test
 ```
 
+The output of the latest run is in [EVIDENCE.md](../EVIDENCE.md#tests).
+
 22 tests run against the built program in LiteSVM (`programs/nest_vault/tests/vault.rs`). The key one, `attacker_with_owner_key_cannot_take_funds_early`, holds the owner's real key and tries every route to the savings before the delay; every route fails. Others cover guardian cancel, lockdown voiding pending requests, delayed settings changes, the safe list, expedite with a guardian, bad settings, the stipend's pro-rata accrual and 8-day cap, and `guardian_rewards_work_with_mainnet_skr`, which runs guardian rewards against SKR's real mainnet mint account ([skr.md](skr.md)). The tests load `target/deploy/nest_vault.so`, the same binary that is deployed.
 
 ## Confirm the deployed program is this code
+
+The IDL is published on-chain: `anchor idl fetch EGe3adgVvYu3He7jgbi3sKQTWrV1v9JBNxT7nGQjA4AZ --provider.cluster devnet` returns the same document as `app/idl/nest_vault.json`.
 
 The program on devnet is byte-identical to the `target/deploy/nest_vault.so` built from this repository at commit `af20e91`, the last change to the program source (`programs/nest_vault/src`; later commits only add tests):
 
@@ -80,4 +84,6 @@ On Windows, build from a short path such as `C:\nf\app`; some native modules exc
 
 The risk score and simulator outcomes are plain functions of on-chain state, so they can be read and checked directly: `assessWithdrawal` in `app/features/intel/withdrawal-risk.ts` and `runScenarios` in `app/features/intel/simulator.ts`. The AI's only input is the text those functions produce (`riskFacts`, `scenarioFacts`, `configFacts`), which is what you see on screen; its only output is wording.
 
-An automated security review and its triage are in [security-review.md](security-review.md); the threat model, with the test or code behind each defence, is in [threat-model.md](threat-model.md).
+A real request and reply, captured from a live pending withdrawal on devnet, and a table of what is computed where: [ai.md](ai.md). To reproduce it: `cd app && npx tsx scripts/ai-payload.ts <vault-with-a-pending-withdrawal>` (needs `EXPO_PUBLIC_GROQ_KEY_ENC` in `app/.env.local`).
+
+The precise rules (signers per instruction, freeze and cancel, delay bypass, compromise cases) are in [security-model.md](security-model.md). An automated security review and its triage are in [security-review.md](security-review.md); the threat model, with the test or code behind each defence, is in [threat-model.md](threat-model.md).

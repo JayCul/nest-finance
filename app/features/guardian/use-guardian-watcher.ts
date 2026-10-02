@@ -76,7 +76,7 @@ export function useGuardianWatcher(enabled: boolean) {
               amount: p.amount,
               destination: p.destination,
               requestedAt: p.requestedAt,
-              available: vault.available + p.amount,
+              available: vault.available, // pending withdrawals stay in the vault until executed
               safeList: vault.safeList,
               ownerWallet: vault.owner,
               history,

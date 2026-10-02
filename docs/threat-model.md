@@ -78,7 +78,7 @@ A phishing dApp tricks the owner into signing a vault instruction.
 
 - Device details (model, system, app version, public IP, GPS) are recorded only when the backup PIN is used, and stored only in the phone's secure storage (`duress.ts`). They are never sent to the AI. The public IP comes from Cloudflare's trace endpoint, which receives nothing but the request itself.
 - Nest Intelligence sends Groq only the facts shown on screen: amounts, durations, counts, roles, risk signals and short addresses. Never keys, full addresses, location, IP, device details or PINs (`app/features/ai/groq.ts`).
-- The Groq API key is built into the app as AES-256-GCM ciphertext (key derived with SHA-256) and decrypted at run time. That keeps it out of the APK as plain text, but a determined person can recover it; it is a dedicated key with a spending limit, rotated after judging. Its worst case is someone running up AI usage on that key, not access to anyone's funds or data.
+- The Groq API key is built into the app as AES-256-GCM ciphertext (key derived with SHA-256) and decrypted at run time. That keeps it out of the APK as plain text, but a determined person can recover it; use a dedicated key with a spending limit and rotate it after judging. Its worst case is someone running up AI usage on that key, not access to anyone's funds or data.
 - The AI cannot act and does not decide. It words facts the app computed and repeats the app's recommended action.
 
 ## Trust assumptions and residual risks

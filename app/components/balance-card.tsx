@@ -1,16 +1,23 @@
 import React, { PropsWithChildren, ReactNode } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
-import Svg, { Path } from 'react-native-svg'
+import Svg, { G, Path } from 'react-native-svg'
 import { colors, fonts, radius, shadow, space } from '@/constants/theme'
 
-/** Stacked chevron outlines, our own take on a fintech card watermark. */
+/** Two leaves from the logo, each split by its wave, as a card watermark. */
+const LEAF = 'M 18 96 C 18 60 52 40 92 44 C 120 47 140 40 162 26 C 156 70 132 116 80 122 C 42 126 18 118 18 96 Z'
+const WAVE = 'M 22 100 C 50 82 72 104 100 86 C 124 70 140 52 160 30'
+
 function CardPattern() {
-  const chevron = (x: number, y: number, s: number) =>
-    `M ${x} ${y} L ${x + s} ${y + s} L ${x} ${y + 2 * s} M ${x + s * 0.55} ${y} L ${x + s * 1.55} ${y + s} L ${x + s * 0.55} ${y + 2 * s}`
   return (
-    <Svg width={170} height={170} viewBox="0 0 170 170" style={StyleSheet.absoluteFill as object}>
-      <Path d={chevron(62, 18, 48)} stroke="rgba(255,255,255,0.16)" strokeWidth={14} strokeLinejoin="round" fill="none" />
-      <Path d={chevron(98, 58, 40)} stroke="rgba(255,255,255,0.10)" strokeWidth={10} strokeLinejoin="round" fill="none" />
+    <Svg width={200} height={200} viewBox="0 0 170 170" style={StyleSheet.absoluteFill as object}>
+      <G transform="rotate(-14 85 85)">
+        <Path d={LEAF} fill="rgba(255,255,255,0.16)" />
+        <Path d={WAVE} stroke={colors.primary} strokeWidth={7} strokeLinecap="round" fill="none" />
+      </G>
+      <G transform="translate(84 98) scale(0.52) rotate(-14 85 85)">
+        <Path d={LEAF} fill="rgba(255,255,255,0.11)" />
+        <Path d={WAVE} stroke={colors.primary} strokeWidth={9} strokeLinecap="round" fill="none" />
+      </G>
     </Svg>
   )
 }
@@ -46,6 +53,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     ...shadow.primary,
   },
-  pattern: { position: 'absolute', right: -20, top: 40, width: 170, height: 170 },
+  pattern: { position: 'absolute', right: -34, top: 34, width: 200, height: 200 },
   label: { fontFamily: fonts.medium, fontSize: 13, color: colors.textOnPrimaryMuted },
 })

@@ -46,7 +46,7 @@ function apiKey(): string | null {
 
 export const aiAvailable = () => !!apiKey()
 
-const RULES = [
+export const RULES = [
   'You are Nest Intelligence inside Nest Finance, a savings app on Solana where every withdrawal waits a protection delay that the owner or a guardian can cancel, and savings can be frozen.',
   'Use only the facts given. Never invent amounts, times, names, addresses or reasons. If the facts do not answer something, say so.',
   'Repeat the recommended action exactly in meaning when one is given; do not add other advice.',
