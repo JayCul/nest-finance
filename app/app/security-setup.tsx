@@ -177,7 +177,7 @@ export default function SecuritySetupScreen() {
         {step === 'done' ? (
           <>
             <PillButton title="Practice now" icon="play-outline" style={{ flex: 0, minHeight: 56 }} onPress={() => startDrill()} />
-            <PillButton title="Done" variant="outline" style={{ flex: 0 }} onPress={() => router.back()} />
+            <PillButton title="Done" variant="outline" style={{ flex: 0 }} onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} />
           </>
         ) : null}
       </View>

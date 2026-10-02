@@ -19,7 +19,7 @@ Everything in one page, with the deployed hash, on-chain IDL and test output: **
 | **SKR** | Guardian rewards paid in SKR, enforced on-chain; tested against SKR's real mainnet mint account; mainnet is a config change: [docs/skr.md](docs/skr.md). Step-by-step devnet trace of funding, claims, the accrual formula and heartbeats: [docs/skr-trace.md](docs/skr-trace.md) |
 | **Security** | Security model (who can sign each instruction, freeze rules, why the delay cannot be bypassed, compromise cases): [docs/security-model.md](docs/security-model.md). Threat model with the test behind each defence: [docs/threat-model.md](docs/threat-model.md). Automated review triage: [docs/security-review.md](docs/security-review.md) |
 | **Deck** | [PDF](https://cdn.jsdelivr.net/gh/JayCul/nest-finance@v0.3.1-devnet/docs/nest-finance-deck.pdf) (17 slides, opens in the browser, text-selectable; also in `docs/`) and a [plain-text version](docs/deck.md) |
-| **Demo** | [Video](https://youtube.com/shorts/_GFJuXn5x9o) (2:50), [APK](https://github.com/JayCul/nest-finance/releases/latest/download/nest-finance-devnet.apk) |
+| **Demo** | [Video](https://youtube.com/shorts/_GFJuXn5x9o) (3:00, ending on a real phone with Phantom; see [device testing](EVIDENCE.md#device-testing)), [APK](https://github.com/JayCul/nest-finance/releases/latest/download/nest-finance-devnet.apk) |
 
 ## The problem
 
@@ -51,9 +51,9 @@ No account or sign-up. Your wallet is your identity, and PINs stay on the phone.
 
 1. **Wallet.** Use any Mobile Wallet Adapter wallet that can sign on devnet. Most wallets have a devnet or testnet switch in their settings.
 2. **Install and connect.** Install the APK, open Nest Finance and tap **Connect wallet**.
-3. **Get test SOL.** If your wallet is nearly empty, Home shows **Get free test SOL**. Tap **Copy address and open faucet**, paste the address on faucet.solana.com, request an airdrop, and come back. The balance updates when you return. Creating protected savings costs about 0.015 SOL.
-4. **Create protected savings.** Tap **Start protected savings**. **Demo** timers are selected by default (withdrawals wait 2 minutes, a freeze lasts 10), so you can watch a withdrawal finish. Approve one transaction in your wallet.
-5. **Set up the backup PIN.** Home prompts you. Pick a real PIN, a backup PIN and an emergency contact, then allow texts and location. **Practice now** runs the backup PIN without freezing anything.
+3. **Set up your PINs.** Setup opens right after you connect. Pick a real PIN, a backup PIN and an emergency contact, then allow texts and location. **Practice now** runs the backup PIN without freezing anything.
+4. **Get test SOL.** If your wallet is nearly empty, Home shows **Get free test SOL**. Tap **Copy address and open faucet**, paste the address on faucet.solana.com, request an airdrop, and come back. The balance updates when you return. Creating protected savings costs about 0.015 SOL.
+5. **Create protected savings.** Tap **Start protected savings**. **Demo** timers are selected by default (withdrawals wait 2 minutes, a freeze lasts 10), so you can watch a withdrawal finish. Approve one transaction in your wallet. With Phantom, the first transaction may open Phantom twice (it does not re-use a saved approval for this app); after that it is one approval each.
 6. **Try it.** Deposit, request a withdrawal and cancel it. Then lock the app (Settings, Lock app) and open it with the backup PIN: you'll see the spending-only view while your savings freeze.
 7. **Try Nest Intelligence.** On Home, tap **What if…? Test your setup** to see seven attacks played against your settings, with **Walk me through it** and **Ask your own what-if**. On the withdraw screen, **Explain this transaction** before you sign. Guardians see a risk score and briefing on every pending withdrawal, and the alert itself carries the risk level. After a backup-PIN freeze, tap the frozen notice on Home for the freeze report.
 

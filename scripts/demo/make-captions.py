@@ -44,6 +44,15 @@ def chunks(text, limit=40):
     return cards
 
 
+# Captions with no voiceover line: the real-phone segment at the end (08-phone).
+EXTRA = [
+    (165.0, 168.0, "The same APK on a real Android phone (POCO F6). PINs are set up first."),
+    (168.0, 170.5, "Phantom signs over Mobile Wallet Adapter."),
+    (170.5, 173.5, "Nest Intelligence explains the withdrawal before it is requested."),
+    (173.5, 176.0, "Backup PIN: a plain wallet opens while the phone's key freezes the savings."),
+    (176.0, 180.0, "Seconds later, the emergency contact gets the text. Location blurred here."),
+]
+
 srt, n = [], 0
 for k, (start, line) in enumerate(zip(pv.START, lines)):
     end = min(start + len(line.split()) / WPS + 0.6, pv.START[k + 1] if k + 1 < len(pv.START) else video_len)
@@ -55,6 +64,9 @@ for k, (start, line) in enumerate(zip(pv.START, lines)):
         n += 1
         srt += [str(n), f"{ts(t)} --> {ts(t + d)}", c, ""]
         t += d
+for start, end, text in EXTRA:
+    n += 1
+    srt += [str(n), f"{ts(start)} --> {ts(end)}", text, ""]
 out = ROOT / "docs" / "demo-captions.srt"
 out.write_text("\n".join(srt), encoding="utf-8")
 print(f"{n} captions -> {out}")

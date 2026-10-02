@@ -58,7 +58,7 @@ function RealSettings() {
   const duressLog = useQuery({ queryKey: ['duress-log'], queryFn: readDuressLog, refetchInterval: 15_000 })
   const lastDuress = duressLog.data?.[0]
   const v = vault.data
-  if (!v) return <DecoySettings />
+  if (!v) return <DecoySettings noSavings />
 
   const frozen = v.lockdownUntil > now
   const pc = pendingConfig.data

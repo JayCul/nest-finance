@@ -14,3 +14,4 @@ app/modules/*/android/.cxx/
 # Demo screen recordings (large video files)
 demo-recordings/
 release/
+__pycache__/

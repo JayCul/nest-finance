@@ -1,6 +1,6 @@
-# Demo video voiceover (2:45)
+# Demo video voiceover (3:00)
 
-Voiceover for `demo-recordings/nest-finance-demo-captioned.mp4` (2:45), recorded on an Android emulator on Solana devnet with each tap shown as a white dot, framed at 1080x1920 for YouTube Shorts with captions under the phone. The same lines are in [voiceover-elevenlabs.txt](voiceover-elevenlabs.txt), ready to paste into ElevenLabs, and as subtitles in [demo-captions.srt](demo-captions.srt).
+Voiceover for `demo-recordings/nest-finance-demo-captioned.mp4` (3:00). The first 2:45 were recorded on an Android emulator on Solana devnet with each tap shown as a white dot, framed at 1080x1920 for YouTube Shorts with captions under the phone. The last 15 seconds are the same APK on a real phone (POCO F6, Android 16) with Phantom, captioned without voiceover; see [EVIDENCE.md](../EVIDENCE.md#device-testing). The same lines are in [voiceover-elevenlabs.txt](voiceover-elevenlabs.txt), ready to paste into ElevenLabs, and as subtitles in [demo-captions.srt](demo-captions.srt).
 
 The video shows Nest Intelligence in three places: the transaction explainer before signing, the guardian's risk-scored alert and briefing, and the What-if simulator with a free-form question.
 
@@ -25,11 +25,12 @@ The video shows Nest Intelligence in three places: the transaction explainer bef
 | 17 | 2:23.5 | "What if someone steals my wallet key", steps, AI walkthrough | Here, a stolen key: the app shows each step, and AI walks you through it. |
 | 18 | 2:33.5 | "Ask your own what-if": a stolen unlocked phone, AI answer | You can ask your own what-if, too. AI explains. The program decides. |
 | 19 | 2:40.5 | The answer (held) | Nest Finance. Savings that can't be rushed. |
+| | 2:45 | Real phone: PIN setup, Phantom "Confirm transaction", the AI explanation, the backup-PIN wallet, the emergency SMS arriving (location, sender and number blurred) | Captions only |
 
 ## Making it
 
 1. Record the segments on the emulator: `scripts/demo/02-owner-tour.sh`, `03-protected-withdrawal.sh`, `04-duress.sh` (owner wallet), `06-guardian-ai.sh` (guardian wallet), `07-owner-ai.sh` (owner wallet).
-2. Cut and join them: `T02="3-11 15-19 27-30 40-46 51-53 57-61" T03="3-8 12-26 36-38 44-49 66-71 75-78" T04="4-27 45-51 58-72" T06="21-26 27-29 30-44 52-56 60-65" T07="36-45 58-68 98-110" bash scripts/demo/assemble.sh`. It prints where each cut starts.
+2. Cut and join them: `T02="3-11 15-19 27-30 40-46 51-53 57-61" T03="3-8 12-26 36-38 44-49 66-71 75-78" T04="4-27 45-51 58-72" T06="21-26 27-29 30-44 52-56 60-65" T07="36-45 58-68 98-110" T08="0-15" bash scripts/demo/assemble.sh`. `08-phone.mp4` is cut by hand from the phone recordings (`adb shell screenrecord`), with personal details blurred. It prints where each cut starts.
 3. Frame and caption it: `python scripts/demo/make-captions.py`.
 4. Generate the voiceover from [voiceover-elevenlabs.txt](voiceover-elevenlabs.txt) in one go (SKR is written "S K R" and numbers are spelled out so they are read correctly), then `python scripts/demo/place-voiceover.py <voiceover.mp3>` places each line at its start time and writes `demo-recordings/nest-finance-demo-voiced.mp4`.
 

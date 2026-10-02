@@ -22,6 +22,7 @@ import {
 } from '@solana/kit'
 import { type QueryClient, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useMobileWallet } from '@wallet-ui/react-native-kit'
+import { useMwaSigner } from '@/features/wallet/mwa-signer'
 import { useEffect, useState } from 'react'
 import {
   fetchMaybePendingConfig,
@@ -431,11 +432,12 @@ function parseEventLine(b64: string): Omit<ActivityItem, 'signature' | 'blockTim
  * object is the fee payer and the signer inside every instruction, so Kit sees one signer.
  */
 export function useSend() {
-  const { account, client, getTransactionSigner } = useMobileWallet()
+  const { account, client } = useMobileWallet()
+  const mwaSigner = useMwaSigner()
   return async function send(build: (signer: TransactionSigner) => Promise<Instruction[]> | Instruction[]) {
     if (!account) throw new UserError('Connect a wallet first.')
     const { value: blockhash, context } = await client.rpc.getLatestBlockhash({ commitment: 'confirmed' }).send()
-    const signer = getTransactionSigner(account.address, context.slot)
+    const signer = mwaSigner(account.address, context.slot)
     const instructions = await build(signer)
     const message = pipe(
       createTransactionMessage({ version: 0 }),
@@ -453,7 +455,17 @@ export function useSend() {
 async function waitForConfirmation(rpc: ReturnType<typeof useMobileWallet>['client']['rpc'], signature: Signature) {
   const deadline = Date.now() + 60_000
   while (Date.now() < deadline) {
-    const { value } = await rpc.getSignatureStatuses([signature]).send()
+    // Some phones (Xiaomi HyperOS) freeze the app while the wallet is open, so the first requests
+    // after signing can fail with a network error. The transaction is already sent: keep checking.
+    const value = await rpc
+      .getSignatureStatuses([signature])
+      .send()
+      .then((r) => r.value)
+      .catch(() => null)
+    if (!value) {
+      await new Promise((r) => setTimeout(r, 1500))
+      continue
+    }
     const status = value[0]
     if (status?.err) throw new Error(`Transaction failed: ${JSON.stringify(status.err, bigintReplacer)}`)
     if (status?.confirmationStatus === 'confirmed' || status?.confirmationStatus === 'finalized') return

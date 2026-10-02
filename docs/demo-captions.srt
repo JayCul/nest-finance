@@ -117,3 +117,23 @@ You can ask your own what-if, too. AI explains. The program decides.
 30
 00:02:40,500 --> 00:02:43,792
 Nest Finance. Savings that can't be rushed.
+
+31
+00:02:45,000 --> 00:02:48,000
+The same APK on a real Android phone (POCO F6). PINs are set up first.
+
+32
+00:02:48,000 --> 00:02:50,500
+Phantom signs over Mobile Wallet Adapter.
+
+33
+00:02:50,500 --> 00:02:53,500
+Nest Intelligence explains the withdrawal before it is requested.
+
+34
+00:02:53,500 --> 00:02:56,000
+Backup PIN: a plain wallet opens while the phone's key freezes the savings.
+
+35
+00:02:56,000 --> 00:03:00,000
+Seconds later, the emergency contact gets the text. Location blurred here.

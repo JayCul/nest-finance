@@ -91,15 +91,35 @@ What is computed on-chain, on the phone, and sent to Groq, with a real captured 
 
 ## Device testing
 
-| Capability | Tested on | How |
-|---|---|---|
-| Mobile Wallet Adapter connect and signing (owner and guardian) | Android 16 emulator (Pixel 6 profile, x86_64) with Solana Mobile's mock-mwa-wallet | Every flow in the demo video; transactions in [devnet-evidence.md](docs/devnet-evidence.md) |
-| Sentinel key in Android Keystore, silent freeze from the backup PIN | Same | Freeze transactions signed by the sentinel, listed in devnet-evidence.md |
-| Emergency SMS (native module) and location | Same (emulator SMS and mock location) | Freeze report screen; `app/modules/nest-sms` |
-| Guardian notifications with risk level | Same | Background watcher, `use-guardian-watcher.ts` |
-| Nest Intelligence against live devnet | Same | [docs/ai.md](docs/ai.md) |
+### Physical phone: POCO F6 (Xiaomi), Android 16 (HyperOS), Phantom wallet
 
-Physical-device results (Seeker or another Android phone) will be added here.
+Run on 2 Oct 2026 with the release APK and Phantom on devnet. The last 15 seconds of the demo video are this run. Vault [`2mQeGq…wEbA`](https://explorer.solana.com/address/2mQeGqCScMCf1BWp9q8ma1WiwVpxJzh2sk56LThZwEbA?cluster=devnet), owner `4bKABz…3dSj`, sentinel `CAMUCS…grXF`.
+
+| Capability | Result | Proof |
+|---|---|---|
+| Install and onboarding | APK installs and runs; PIN and backup PIN set up first, then the emergency contact, SMS and location permissions | Video, 2:45 |
+| Mobile Wallet Adapter with Phantom | Create savings, deposit, request and complete a withdrawal, each approved in Phantom | [created](https://explorer.solana.com/tx/4Fh6962NkfRa9WchRUWwrfCzjrgjuVpiuYgfVUAM8uw5GrQyd3k5sMmG2mZd778L5LR6XvfSyLZpGspAZKoR1xz?cluster=devnet), [deposit](https://explorer.solana.com/tx/64b6cTQvEjvFjSfn55gEWygUnK9DQaKtqbzwMbquPeWNfvdenUqGPE5DZCotQA1BJ4M349XBv7KGXpg6TzB6suzj?cluster=devnet), [request](https://explorer.solana.com/tx/2fH4qdB6U56AvGAEJMUTpfTuHsbnh6vgzXvt6VvKmHqC4s8cRTApZxtFwnChLSSMXrqpy7unSXhBPQyDPu4riiko?cluster=devnet), [executed](https://explorer.solana.com/tx/5hqN9QsGF4pgUQb4arvQdUHqKrmh9GEwfW3cv9kWWywFBtHAS91UtSrtssRLB5DZ4XGV1yWJQqy9Awv4k1y7rcRV?cluster=devnet) |
+| Nest Intelligence | Risk score, signals and the AI explanation on the withdraw screen | Video, 2:50 |
+| Keystore sentinel, silent freeze | The backup PIN froze the vault with no wallet prompt; the freeze is signed and paid for by the sentinel key held in Android Keystore | [lockdown](https://explorer.solana.com/tx/4vFxD1ScDHuP1K3oXqiwJ8edWpft9Umf3nfmR31eKpuff3XXhkAoz3R98CXuBgvDzAgPcRMPiWBd1vwEN718Rz4m?cluster=devnet), fee payer `CAMUCS…grXF` |
+| Emergency SMS and location | The text was sent from the phone's SIM by the native module and delivered, with a map link to the phone's position | Video, 2:56 (location blurred) |
+| Notifications | Permission granted at first launch | Guardian alerts on a phone were not part of this run; they are shown on the emulator |
+
+What the phone found, and what changed:
+
+- **Phantom refuses to re-use a saved authorization** for a dApp whose identity it has not verified (its log: "Declining sol_mwa_reauthorize: dApp identity is not verified"). The wallet library's fallback did not run on React Native, so signing stopped. [`app/features/wallet/mwa-signer.ts`](app/features/wallet/mwa-signer.ts) now authorizes again in a new session and remembers that wallet, so each later transaction needs one approval. The emulator's MWA test wallet still uses the saved authorization.
+- **HyperOS freezes the app while the wallet is open**, so the first network request after signing failed and the app showed "can't reach Solana" although the transaction had landed. Confirmation now keeps checking through network errors (`waitForConfirmation` in [`use-vault.ts`](app/features/vault/use-vault.ts)).
+- **PIN setup is now the first onboarding step** after connecting a wallet, instead of a card on Home.
+- Xiaomi blocks simulated taps over USB unless "USB debugging (Security settings)" is on, so this run was driven by hand and recorded with `screenrecord`.
+
+### Emulator: Android 16 (Pixel 6 profile, x86_64), Solana Mobile mock-mwa-wallet
+
+| Capability | How |
+|---|---|
+| Mobile Wallet Adapter connect and signing (owner and guardian) | Every emulator flow in the demo video; transactions in [devnet-evidence.md](docs/devnet-evidence.md) |
+| Sentinel key in Android Keystore, silent freeze from the backup PIN | Freeze transactions signed by the sentinel, listed in devnet-evidence.md |
+| Emergency SMS (native module) and location | Emulator SMS and a test location; shown in the video |
+| Guardian notifications with risk level | Background watcher, `use-guardian-watcher.ts`; shown in the video |
+| Nest Intelligence against live devnet | [docs/ai.md](docs/ai.md) |
 
 ## Release
 

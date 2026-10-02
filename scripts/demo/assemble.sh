@@ -10,6 +10,7 @@ CUTS=(
   "04-duress ${T04:-0-999}"
   "06-guardian-ai ${T06:-0-999}"
   "07-owner-ai ${T07:-0-999}"
+  "08-phone ${T08:-0-999}"
 )
 
 list=parts.txt; : > "$list"; n=0

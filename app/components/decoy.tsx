@@ -146,7 +146,8 @@ export function DecoyPeople() {
   )
 }
 
-export function DecoySettings() {
+/** Also the Settings screen before any savings exist (`noSavings`), where PINs aren't set up yet. */
+export function DecoySettings({ noSavings = false }: { noSavings?: boolean }) {
   const { account, disconnect } = useMobileWallet()
   const { lock, pinsEnabled } = useSecurity()
   const Row = ({ icon, label, value, onPress, danger }: { icon: IconName; label: string; value?: string; onPress?: () => void; danger?: boolean }) => (
@@ -168,7 +169,15 @@ export function DecoySettings() {
       </Card>
       <Text style={styles.group}>Security</Text>
       <Card style={{ gap: 0, paddingVertical: space.sm }}>
-        <Row icon="keypad-outline" label="Change PIN" onPress={() => Alert.alert('Change PIN', 'Unlock with your current PIN from the lock screen first.')} />
+        <Row
+          icon="keypad-outline"
+          label={noSavings ? 'Set up PINs' : 'Change PIN'}
+          onPress={() =>
+            noSavings
+              ? Alert.alert('Set up PINs', 'Create your protected savings on Home first. Your PIN and backup PIN come right after.')
+              : Alert.alert('Change PIN', 'Unlock with your current PIN from the lock screen first.')
+          }
+        />
         {pinsEnabled ? <Row icon="lock-closed-outline" label="Lock app" onPress={lock} /> : null}
       </Card>
       <Text style={styles.group}>About</Text>
