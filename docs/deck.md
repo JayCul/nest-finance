@@ -575,7 +575,7 @@ Runs on Android, with MWA | APK on GitHub; every signature through Mobile Wallet
 Stickiness | Weekly guardian check-ins paid in SKR; risk alerts; safety score and What-if simulator | skr.md; simulator.ts |  
 User experience | Backup PIN decoy, one-tap cancel, plain-language AI, faucet buttons and demo timers for judges | README: For judges |  
 Innovation | Duress PIN + on-chain time lock + a key that can only tighten, so a coerced unlock gives nothing | threat-model.md |  
-Demo | 2:50 video of the flows on devnet | youtube.com/shorts/_GFJuXn5x9o |  
+Demo | 3:00 video: emulator flows with the AI, then a real phone with Phantom | youtube.com/shorts/OfqEbHQXAuE |  
 SKR integration | Rewards pool enforced on-chain; full cycle traced; tested on SKR's mainnet mint | skr-trace.md |  
 Technical evidence | 22 of 22 tests; deployed binary matches the repo; IDL on-chain; 65 decoded transactions | EVIDENCE.md |  
 AI, honestly scoped | Scores computed in code; Groq words them; exact payload published | ai.md |  
